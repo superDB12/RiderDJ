@@ -1,0 +1,19 @@
+{
+  "name": "riderdj",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace apps/backend run dev",
+    "dev:passenger": "npm --workspace apps/passenger-app start"
+  },
+  "dependencies": {
+    "@riderdj/api-client": "^1.0.0",
+    "@riderdj/types": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

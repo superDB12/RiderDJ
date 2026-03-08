@@ -1,0 +1,17 @@
+{
+  "name": "@riderdj/backend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "fastify": "^4.0.0",
+    "@riderdj/types": "*",
+    "@riderdj/validation": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

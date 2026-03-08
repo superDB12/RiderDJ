@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "target": "ES2022",
+      "module": "CommonJS",
+      "moduleResolution": "Node",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "resolveJsonModule": true,
+      "baseUrl": ".",
+      "paths": {
+        "@riderdj/types": ["packages/types/index.ts"],
+        "@riderdj/api-client": ["packages/api-client/index.ts"],
+        "@riderdj/validation": ["packages/validation/index.ts"]
+      }
+    }
+  }
