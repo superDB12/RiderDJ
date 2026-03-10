@@ -1,10 +1,13 @@
-import Fastify from "fastify";
+import { buildApp } from "./app";
 
-const app = Fastify({ logger: true });
+async function start() {
+  const app = await buildApp();
 
-app.get("/health", async () => {
-  return { status: "ok" };
-});
+  await app.listen({ port: 3000 });
 
-app.listen({ port: 3000 });
+  console.log("Server running on http://localhost:3000");
+  console.log(app.printRoutes());
+}
+
+start();
 
