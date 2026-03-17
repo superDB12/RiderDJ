@@ -5,6 +5,6 @@ export async function rideRoutes(app: FastifyInstance) {
 
   app.post("/rides", createRide)
 
-  app.get("/rides/:joinCode", getRide)
+  app.get("/rides/:joinCode/join", getRide)
 
 }

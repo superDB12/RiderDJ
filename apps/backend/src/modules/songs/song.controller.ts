@@ -1,6 +1,13 @@
 import { getQueue, requestSong } from "./song.service"
 import { FastifyRequest, FastifyReply } from "fastify"
 import { SongRequest } from "@riderdj/types"
+import { addSongToDriverQueue } from "../spotify/spotify.service"
+
+// Example in-memory storage
+const driverTokens = {
+  accessToken: process.env.DRIVER_ACCESS_TOKEN!,
+  refreshToken: process.env.DRIVER_REFRESH_TOKEN!,
+}
 
 export async function getRideQueue(request: FastifyRequest) {
 
@@ -11,33 +18,29 @@ export async function getRideQueue(request: FastifyRequest) {
   return queue
 }
 
-export async function addSong(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
+export async function addSong(request: FastifyRequest, reply: FastifyReply) {
   try {
-    // Extract rideId from URL params
     const { rideId } = request.params as { rideId: string }
-
-    // Extract trackId from request body
     const { trackId } = request.body as { trackId: string }
 
-    // Validate input
     if (!trackId) {
       return reply.status(400).send({ error: "trackId is required" })
     }
 
-    // Call the service to add the song to the ride queue
-    const song: SongRequest = await requestSong(rideId, trackId)
+    // Add song to in-memory queue
+    const song = await requestSong(rideId, trackId)
 
-    // Return confirmation
-    return reply.status(201).send({
-      status: "queued",
-      song,
-    })
+    // Queue the song in Spotify
+    try {
+      // Spotify track URI format: spotify:track:<id>
+      await addSongToDriverQueue(`spotify:track:${trackId}`, driverTokens)
+    } catch (err) {
+      console.error("Failed to queue song in Spotify:", err)
+    }
 
-  } catch (error) {
-    console.error("Error adding song:", error)
+    return reply.status(201).send({ status: "queued", song })
+  } catch (err) {
+    console.error("Error adding song:", err)
     return reply.status(500).send({ error: "Failed to add song" })
   }
 }

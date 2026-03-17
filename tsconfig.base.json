@@ -13,5 +13,8 @@
         "@riderdj/api-client": ["packages/api-client/index.ts"],
         "@riderdj/validation": ["packages/validation/index.ts"]
       }
-    }
+    },
+    "include": [
+      "environment.d.ts"
+    ]
   }

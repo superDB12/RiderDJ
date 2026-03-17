@@ -43,4 +43,4 @@ app.get("/health", function () { return __awaiter(void 0, void 0, void 0, functi
         return [2 /*return*/, { status: "ok" }];
     });
 }); });
-app.listen({ port: 3000 });
+app.listen({ port: 3000, host: "0.0.0.0" });

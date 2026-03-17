@@ -5,13 +5,14 @@
     "dev": "tsx src/server.ts"
   },
   "dependencies": {
-    "fastify": "^4.0.0",
+    "@fastify/cors": "^11.2.0",
     "@riderdj/types": "*",
-    "@riderdj/validation": "*"
+    "@riderdj/validation": "*",
+    "fastify": "^4.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
     "tsx": "^4.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   }
 }
