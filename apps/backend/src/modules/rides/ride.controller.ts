@@ -1,27 +1,31 @@
-import { FastifyRequest, FastifyReply } from "fastify";
-import { startRide, joinRide } from "./ride.service";
+// ride.controller.ts
+import { FastifyReply, FastifyRequest } from "fastify";
+import { rides, Ride } from "@riderdj/types";
 
-export async function createRide(
-  req: FastifyRequest,
-  reply: FastifyReply
-) {
-  const ride = await startRide();
-  return ride;
+// Create a new ride
+export async function createRide(request: FastifyRequest<{ Body: { driver: string } }>, reply: FastifyReply) {
+  const { driver } = request.body;
+  const id = Math.random().toString(36).substring(2, 6).toUpperCase(); // simple ride ID
+
+  const newRide: Ride = { id, driverId: driver, passengers: [] };
+  rides[id] = newRide;
+
+  return reply.status(201).send(newRide);
 }
 
-export async function getRide(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
-  const { joinCode } = request.params as { joinCode: string }
+// Join an existing ride
+export async function joinRide(request: FastifyRequest<{ Params: { rideId: string }; Body: { passengerName: string } }>, reply: FastifyReply) {
+  const { rideId } = request.params;
+  const { passengerName } = request.body;
 
-  try {
-    const ride = await joinRide(joinCode)
-
-    return ride
-  } catch {
-    return reply.status(404).send({
-      error: "Ride not found"
-    })
+  if (!rides[rideId]) {
+    return reply.status(404).send("Ride not found");
   }
+
+  if (!passengerName) {
+    return reply.status(400).send("passengerName required");
+  }
+
+  rides[rideId].passengers.push(passengerName);
+  return reply.send(rides[rideId]);
 }

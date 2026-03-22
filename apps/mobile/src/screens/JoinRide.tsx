@@ -2,16 +2,17 @@ import React, { useState } from "react"
 import { View, Text, TextInput, Button, StyleSheet } from "react-native"
 import { joinRide } from "../api/rides"
 
-export default function JoinRide({ navigation }: any) {
+export default function JoinRideScreen({ navigation }: any) {
   const [rideCode, setRideCode] = useState("")
   const [error, setError] = useState("")
+  const [passengerName, setPassengerName] = useState("")
 
   const handleJoinRide = async () => {
     try {
-      const data = await joinRide(rideCode)
+      const data = await joinRide(rideCode, passengerName)
 
       navigation.navigate("Queue", {
-        rideId: data.rideId
+        rideId: data.id
       })
 
     } catch (err) {
@@ -28,6 +29,13 @@ export default function JoinRide({ navigation }: any) {
         placeholder="Enter Ride Code"
         value={rideCode}
         onChangeText={setRideCode}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Enter Your Name"
+        value={passengerName}
+        onChangeText={setPassengerName}
       />
 
       <Button title="Join Ride" onPress={handleJoinRide} />

@@ -10,7 +10,8 @@
     "ios": "expo run:ios"
   },
   "dependencies": {
-    "@fastify/cors": "^11.2.0",
+    "@fastify/cors": "8.5.0",
+    "@react-native/debugger-shell": "^0.83.2",
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
     "@riderdj/types": "*",

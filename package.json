@@ -10,14 +10,13 @@
     "dev:passenger": "npm --workspace apps/passenger-app start"
   },
   "dependencies": {
-    "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.0.0",
     "@prisma/client": "^7.4.2",
     "@riderdj/api-client": "^1.0.0",
     "@riderdj/types": "^1.0.0",
     "axios": "^1.13.6",
     "dotenv": "^17.3.1",
-    "fastify": "^5.8.2",
+    "fastify": "^4.29.1",
     "ioredis": "^5.10.0",
     "node-fetch": "^3.3.2",
     "prisma": "^7.4.2",
@@ -43,5 +42,8 @@
   "bugs": {
     "url": "https://github.com/superDB12/RiderDJ/issues"
   },
-  "homepage": "https://github.com/superDB12/RiderDJ#readme"
+  "homepage": "https://github.com/superDB12/RiderDJ#readme",
+  "overrides": {
+    "@fastify/cors": "8.5.0"
+  }
 }
