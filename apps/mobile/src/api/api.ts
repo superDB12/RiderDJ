@@ -1,5 +1,5 @@
 // apps/mobile/src/api/api.ts
-const BASE_URL = "http://localhost:3000"
+const BASE_URL = "http://192.68.86.130:3000"
 
 export async function createRide() {
   const res = await fetch(`${BASE_URL}/rides`, { method: "POST" })

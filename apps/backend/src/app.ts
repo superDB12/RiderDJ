@@ -2,9 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { rideRoutes } from "./modules/rides/ride.routes";
 import { songsRoutes } from "./modules/songs/song.routes";
-import * as dotenv from "dotenv";
-
-dotenv.config();
+import { spotifyRoutes } from "./modules/spotify/spotify.routes";
 
 export async function buildApp() {
   const app = Fastify({ logger: true });
@@ -20,6 +18,8 @@ export async function buildApp() {
 
   await app.register(rideRoutes);
   await app.register(songsRoutes);
+  console.log("spotifyRoutes:", spotifyRoutes);
+  await app.register(spotifyRoutes);
 
   return app;
 }

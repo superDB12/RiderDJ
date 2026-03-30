@@ -2,8 +2,8 @@
 import { Button, View, Text } from "react-native"
 import { Linking } from "react-native"
 
-const clientId = "YOUR_SPOTIFY_CLIENT_ID"
-const redirectUri = "http://localhost:3000/spotify/callback"
+const clientId = process.env.SPOTIFY_CLIENT_ID || "your_spotify_client_id"
+const redirectUri = "http://192.168.86.130:3000/spotify/callback"
 const scopes = "user-modify-playback-state user-read-playback-state"
 
 export default function SpotifyConnect() {

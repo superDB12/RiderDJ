@@ -1,29 +1,19 @@
-import { SongRequest } from "@riderdj/types"
-import { randomUUID } from "crypto"
+import { Song } from "@riderdj/types"
 
 // Map of rideId -> array of SongRequests
-const songQueue = new Map<string, SongRequest[]>()
+const songQueue = new Map<string, Song[]>();
 
 export async function getQueue(rideId: string) {
-  const queue = songQueue.get(rideId) || []
-
-  return queue
+  return songQueue.get(rideId) || [];
 }
 
-export async function requestSong(rideId: string, trackId: string) {
-  const song: SongRequest = {
-    id: randomUUID(),
-    rideId,
-    trackId,
-    votes: 1,
-    addedAt: new Date()
-  }
-
+// 🔥 UPDATED: now accepts full song object
+export async function requestSong(rideId: string, song: Song) {
   if (!songQueue.has(rideId)) {
-    songQueue.set(rideId, [])
+    songQueue.set(rideId, []);
   }
 
-  songQueue.get(rideId)!.push(song)
+  songQueue.get(rideId)!.push(song);
 
-  return song
+  return song;
 }

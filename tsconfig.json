@@ -1,8 +1,16 @@
 {
-    "files": [],
-    "references": [
-      { "path": "packages/types" },
-      { "path": "packages/validation" },
-      { "path": "apps/backend" }
-    ]
-  }
+  "files": [],
+  "references": [
+    {
+      "path": "packages/types"
+    },
+    {
+      "path": "packages/validation"
+    },
+    {
+      "path": "apps/backend"
+    }
+  ],
+  "compilerOptions": {},
+  "extends": "expo/tsconfig.base"
+}

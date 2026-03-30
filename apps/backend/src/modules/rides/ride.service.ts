@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { getCurrentlyPlaying } from "../spotify/spotify.service";
 
 interface Ride {
   rideId: string
@@ -8,6 +9,7 @@ interface Ride {
 }
 
 const rides = new Map<string, Ride>()
+const songQueue = new Map<string, any[]>(); // 👈 change to any[] for now
 
 function generateJoinCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase()
@@ -34,4 +36,16 @@ export async function joinRide(joinCode: string) {
   }
 
   return ride
+}
+
+export async function syncQueueWithSpotify(rideId: string) {
+  const queue = songQueue.get(rideId) || [];
+
+  const currentTrackId = await getCurrentlyPlaying();
+
+  while (queue.length > 0 && queue[0].trackId === currentTrackId) {
+    queue.shift();
+  }
+
+  return queue;
 }

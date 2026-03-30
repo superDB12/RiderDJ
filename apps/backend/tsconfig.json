@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": ["src", "src/modules/spotify/env.d.ts", "src/modules/spotify/env.d.ts"],
   "references": [
     { "path": "../../packages/types" },
     { "path": "../../packages/validation" }

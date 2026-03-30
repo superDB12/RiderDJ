@@ -1,7 +1,9 @@
 import { getQueue, requestSong } from "./song.service"
 import { FastifyRequest, FastifyReply } from "fastify"
-import { SongRequest } from "@riderdj/types"
-import { addSongToDriverQueue } from "../spotify/spotify.service"
+import { Song } from "@riderdj/types"
+import { addToSpotifyQueue } from "../spotify/spotify.service"
+import crypto from "crypto"
+import { getTrackMetadata } from "../spotify/spotify.service";
 
 // Example in-memory storage
 const driverTokens = {
@@ -20,28 +22,42 @@ export async function getRideQueue(request: FastifyRequest) {
 
 export async function addSong(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const { rideId } = request.params as { rideId: string }
-    const { trackId } = request.body as { trackId: string }
+    const { rideId } = request.params as { rideId: string };
+    const { trackId } = request.body as { trackId: string };
 
     if (!trackId) {
-      return reply.status(400).send({ error: "trackId is required" })
+      return reply.status(400).send({ error: "trackId is required" });
     }
 
-    // Add song to in-memory queue
-    const song = await requestSong(rideId, trackId)
+    // 🔥 NEW: fetch metadata from Spotify
+    const metadata = await getTrackMetadata(trackId);
+
+    // 🔥 NEW: build full song object
+    const song = {
+      id: crypto.randomUUID(),
+      rideId,
+      trackId,
+      title: metadata.title,
+      artist: metadata.artist,
+      albumArt: metadata.albumArt,
+      votes: 0,
+      addedAt: new Date().toISOString(),
+    };
+
+    // 🔥 IMPORTANT: store THIS instead of just trackId
+    await requestSong(rideId, song); // 👈 changed this line
 
     // Queue the song in Spotify
     try {
-      // Spotify track URI format: spotify:track:<id>
-      await addSongToDriverQueue(`spotify:track:${trackId}`, driverTokens)
+      await addToSpotifyQueue(`spotify:track:${trackId}`);
     } catch (err) {
-      console.error("Failed to queue song in Spotify:", err)
+      console.error("Failed to queue song in Spotify:", err);
     }
 
-    return reply.status(201).send({ status: "queued", song })
+    return reply.status(201).send({ status: "queued", song });
   } catch (err) {
-    console.error("Error adding song:", err)
-    return reply.status(500).send({ error: "Failed to add song" })
+    console.error("Error adding song:", err);
+    return reply.status(500).send({ error: "Failed to add song" });
   }
 }
 

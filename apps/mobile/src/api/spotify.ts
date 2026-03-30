@@ -1,17 +1,29 @@
-import { SPOTIFY_API_BASE } from "./config"
+import { API_BASE_URL } from "./config"
 
-export async function searchSpotify(query: string, accessToken: string) {
-  const res = await fetch(`${SPOTIFY_API_BASE}/search?type=track&q=${encodeURIComponent(query)}`, {
+export async function searchSpotify(query: string) {
+  const res = await fetch(
+    `${API_BASE_URL}/spotify/search?q=${encodeURIComponent(query)}`
+  );
+
+  if (!res.ok) {
+    throw new Error("Search failed");
+  }
+
+  return res.json();
+}
+
+export async function pushToSpotify(trackId: string) {
+  const res = await fetch(`${API_BASE_URL}/spotify/queue`, {
+    method: "POST",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ trackId }),
   });
 
   if (!res.ok) {
-    throw new Error("Failed to search Spotify");
+    throw new Error("Failed to push to Spotify");
   }
 
-  const data = await res.json();
-  return data.tracks.items; // array of tracks
+  return res.json();
 }
