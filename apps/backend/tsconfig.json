@@ -1,13 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "rootDir": "./src",
     "outDir": "dist"
   },
-  "include": ["src", "src/modules/spotify/env.d.ts", "src/modules/spotify/env.d.ts"],
-  "references": [
-    { "path": "../../packages/types" },
-    { "path": "../../packages/validation" }
-  ]
+  "include": ["src"]
 }
