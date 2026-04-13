@@ -8,7 +8,7 @@
     "@fastify/cors": "^8.5.0",
     "@fastify/websocket": "^8.3.1",
     "@prisma/adapter-pg": "^7.6.0",
-    "@riderdj/types": "*",
+    "@riderdj/types": "file:../../packages/types",
     "@riderdj/validation": "*",
     "fastify": "^4.0.0",
     "pg": "^8.20.0"
