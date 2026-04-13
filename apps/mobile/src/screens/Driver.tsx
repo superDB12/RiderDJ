@@ -24,7 +24,7 @@ export default function Driver() {
     loadQueue();
 
     const ws = new WebSocket(
-      `ws://192.168.86.130:3000/rides/${rideId}/ws`
+      `wss://riderdj-production.up.railway.app/rides/${rideId}/ws`
     );
 
     ws.onmessage = (event) => {
