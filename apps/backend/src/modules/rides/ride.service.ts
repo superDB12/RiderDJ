@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto";
 import { getCurrentlyPlaying } from "../spotify/spotify.service";
-import { Song } from "@riderdj/types";
 import { rideSockets, songQueue } from "./ride.store";
 import { prisma } from "../../infrastructure/database/prisma";
 
@@ -70,7 +69,7 @@ export async function syncQueueWithSpotify(rideId: string) {
   const currentTrackId = await getCurrentlyPlaying(rideId);
 
   console.log("🎧 Spotify:", currentTrackId);
-  console.log("📜 Queue BEFORE:", queue.map((s: Song) => s.trackId));
+  console.log("📜 Queue BEFORE:", queue.map((s) => s.trackId));
 
   if (!currentTrackId) return queue;
 
@@ -89,7 +88,7 @@ export async function syncQueueWithSpotify(rideId: string) {
     orderBy: { addedAt: "asc" },
   });
 
-  console.log("📜 Queue AFTER:", updatedQueue.map((s: Song) => s.trackId));
+  console.log("📜 Queue AFTER:", updatedQueue.map((s) => s.trackId));
 
   return updatedQueue;
 }
