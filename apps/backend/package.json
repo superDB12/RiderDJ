@@ -11,6 +11,7 @@
     "@fastify/websocket": "^8.3.1",
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
+    "prisma": "^7.7.0",
     "@riderdj/types": "file:../../packages/types",
     "@riderdj/validation": "file:../../packages/validation",
     "dotenv": "^17.4.0",
@@ -20,7 +21,6 @@
   "devDependencies": {
     "@types/node": "^20.19.39",
     "@types/ws": "^8.18.1",
-    "prisma": "^7.7.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }
