@@ -10,7 +10,7 @@
     "@fastify/websocket": "^8.3.1",
     "@prisma/adapter-pg": "^7.6.0",
     "@riderdj/types": "file:../../packages/types",
-    "@riderdj/validation": "*",
+    "@riderdj/validation": "file:../../packages/validation",
     "fastify": "^4.0.0",
     "pg": "^8.20.0"
   },
