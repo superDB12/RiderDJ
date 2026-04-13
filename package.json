@@ -8,6 +8,8 @@
     "packages/validation"
   ],
   "scripts": {
+    "build": "npm run build --workspace @riderdj/backend",
+    "start": "npm run start --workspace @riderdj/backend",
     "dev:backend": "npm --workspace apps/backend run dev",
     "dev:mobile": "npm --workspace mobile start",
     "android": "npm --workspace mobile run android",
