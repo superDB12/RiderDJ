@@ -32,7 +32,7 @@ export async function addSong(request: FastifyRequest, reply: FastifyReply) {
     }
 
     // 🔥 NEW: fetch metadata from Spotify
-    const metadata = await getTrackMetadata(trackId);
+    const metadata = await getTrackMetadata(rideId, trackId);
 
     // 🔥 NEW: build full song object
     const song = {
@@ -53,7 +53,7 @@ export async function addSong(request: FastifyRequest, reply: FastifyReply) {
 
     // Queue the song in Spotify
     try {
-      await addToSpotifyQueue(`spotify:track:${cleanTrackId}`);
+      await addToSpotifyQueue(rideId, cleanTrackId);
     } catch (err) {
       console.error("Failed to queue song in Spotify:", err);
     }

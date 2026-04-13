@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { setTokens } from "./token.store";
 import { addToSpotifyQueue, getValidAccessToken } from "./spotify.service";
 import { prisma } from "../../infrastructure/database/prisma";
 
@@ -50,31 +49,45 @@ export async function spotifyRoutes(app: FastifyInstance) {
     });
 
     const data = await res.json();
-    setTokens(data);
-    console.log("TOKENS RECEIVED:", data);
 
-    const { rideId, redirectTo } = JSON.parse(
-      Buffer.from(state, "base64").toString()
-    );
+    const { rideId, redirectTo } = JSON.parse(Buffer.from(state, "base64").toString());
 
-    await prisma.ride.upsert({
-      where: { id: rideId },
-      update: { isActive: true },
-      create: { id: rideId, isActive: true },
+    const expiresAt = new Date(Date.now() + data.expires_in * 1000);
+
+    const ride = await prisma.ride.upsert({
+      where: { id: rideId ?? "" },
+      update: {
+        isActive: true,
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt,
+      },
+      create: {
+        ...(rideId ? { id: rideId } : {}),
+        isActive: true,
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt,
+      },
     });
 
-    console.log("Redirecting to:", redirectTo ?? `riderdj://driver/${rideId}`);
-    return reply.redirect(redirectTo ?? `riderdj://driver/${rideId}`);
+    console.log("RIDE UPSERTED WITH TOKENS:", ride.id);
+
+    return reply.redirect(redirectTo ?? `riderdj://driver/${ride.id}`);
   });
 
   app.get("/spotify/search", async (request, reply) => {
-  const { q } = request.query as { q: string };
+  const { q, rideId } = request.query as { q: string; rideId: string };
 
   if (!q) {
     return reply.status(400).send({ error: "Missing query" });
   }
 
-  const accessToken = await getValidAccessToken();
+  if (!rideId) {
+    return reply.status(400).send({ error: "Missing rideId" });
+  }
+
+  const accessToken = await getValidAccessToken(rideId);
 
   const res = await fetch(
     `https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=10`,
@@ -99,9 +112,9 @@ export async function spotifyRoutes(app: FastifyInstance) {
 });
 
 app.post("/spotify/queue", async (request, reply) => {
-  const { trackId } = request.body as { trackId: string };
+  const { trackId, rideId } = request.body as { trackId: string; rideId: string };
 
-  await addToSpotifyQueue(trackId);
+  await addToSpotifyQueue(rideId, trackId);
 
   return { success: true };
 });

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { View, Text, StyleSheet, TextInput, Button, FlatList, TouchableOpacity, ActivityIndicator } from "react-native"
 import { getQueue } from "../api/rides"
 import { addSong } from "../api/songs"
-import { pushToSpotify, searchSpotify } from "../api/spotify"
+import { searchSpotify } from "../api/spotify"
 import { Song } from "@riderdj/types";
 
 export default function Queue({ route }: any) {
@@ -68,7 +68,7 @@ export default function Queue({ route }: any) {
     try {
       setError("");
       //setLoading(true);
-      const data = await searchSpotify(query);
+      const data = await searchSpotify(rideId, query);
       setResults(data.tracks || []);
     } catch (err: any) {
       setError(err.message);
@@ -82,7 +82,6 @@ export default function Queue({ route }: any) {
       setError("");
       //setLoading(true);
       await addSong(rideId, trackId);
-      await pushToSpotify(trackId);
       await loadQueue(); // refresh queue
       setQuery("");
       setResults([]);

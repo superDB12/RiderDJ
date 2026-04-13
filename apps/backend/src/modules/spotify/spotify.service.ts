@@ -1,25 +1,32 @@
-import { SpotifyTokens, SpotifyTrack } from "@riderdj/types"
-import { getTokens, setTokens } from "./token.store";
+import { SpotifyTrack } from "@riderdj/types"
+import { prisma } from "../../infrastructure/database/prisma";
 
 // Replace with your Spotify app credentials
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID as string;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET as string;
 
 // Refresh access token if expired
-export async function getValidAccessToken(): Promise<string> {
-  const tokens = getTokens();
+export async function getValidAccessToken(rideId: string): Promise<string> {
+  const ride = await prisma.ride.findUnique({
+    where: { id: rideId },
+  });
 
-  if (!tokens) {
-    throw new Error("No Spotify tokens found");
+  if (!ride) {
+    throw new Error("Ride not found");
   }
 
-  const isExpired = Date.now() >= tokens.expires_in;
+  if (!ride.accessToken || !ride.refreshToken || !ride.expiresAt) {
+    throw new Error("Missing Spotify tokens for ride");
+  }
 
+  const isExpired = Date.now() >= new Date(ride.expiresAt).getTime();
+
+  // ✅ still valid
   if (!isExpired) {
-    return tokens.access_token;
+    return ride.accessToken;
   }
 
-  console.log("🔄 Refreshing Spotify token...");
+  console.log("🔄 Refreshing Spotify token for ride:", rideId);
 
   const res = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
@@ -27,13 +34,13 @@ export async function getValidAccessToken(): Promise<string> {
       Authorization:
         "Basic " +
         Buffer.from(
-          `${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`
+          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
         ).toString("base64"),
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      refresh_token: tokens.refresh_token,
+      refresh_token: ride.refreshToken,
     }),
   });
 
@@ -41,21 +48,26 @@ export async function getValidAccessToken(): Promise<string> {
     throw new Error(`Spotify token refresh failed: ${res.statusText}`);
   }
 
-  const data = await res.json() as SpotifyTokens;
+  const data = await res.json();
 
-  // 🔥 update stored tokens
-  setTokens({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token ?? tokens.refresh_token, // Spotify may not return a new one
-    expires_in: data.expires_in,
+  const newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
+
+  // ✅ update DB
+  await prisma.ride.update({
+    where: { id: rideId },
+    data: {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token ?? ride.refreshToken,
+      expiresAt: newExpiresAt,
+    },
   });
-  console.log("TOKENS:", data);
+
   return data.access_token;
 }
 
 // Add a song to the driver’s Spotify queue
-export async function addToSpotifyQueue(trackId: string) {
-  const accessToken = await getValidAccessToken();
+export async function addToSpotifyQueue(rideId: string, trackId: string) {
+  const accessToken = await getValidAccessToken(rideId);
 
   const res = await fetch(
     `https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${trackId}`,
@@ -74,8 +86,8 @@ export async function addToSpotifyQueue(trackId: string) {
   }
 }
 
-export async function getTrackMetadata(trackId: string) {
-  const accessToken = await getValidAccessToken();
+export async function getTrackMetadata(rideId: string, trackId: string) {
+  const accessToken = await getValidAccessToken(rideId);
 
   const res = await fetch(
     `https://api.spotify.com/v1/tracks/${trackId}`,
@@ -103,8 +115,8 @@ export async function getTrackMetadata(trackId: string) {
   };
 }
 
-export async function getCurrentlyPlaying() {
-  const accessToken = await getValidAccessToken();
+export async function getCurrentlyPlaying(rideId: string) {
+  const accessToken = await getValidAccessToken(rideId);
 
   const res = await fetch(
     "https://api.spotify.com/v1/me/player/currently-playing",

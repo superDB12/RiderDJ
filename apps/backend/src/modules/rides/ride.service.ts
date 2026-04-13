@@ -67,7 +67,7 @@ export async function syncQueueWithSpotify(rideId: string) {
 
   if (queue.length === 0) return queue;
 
-  const currentTrackId = await getCurrentlyPlaying();
+  const currentTrackId = await getCurrentlyPlaying(rideId);
 
   console.log("🎧 Spotify:", currentTrackId);
   console.log("📜 Queue BEFORE:", queue.map((s: Song) => s.trackId));
