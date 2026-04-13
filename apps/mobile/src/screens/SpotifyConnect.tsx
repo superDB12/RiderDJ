@@ -1,25 +1,32 @@
-// apps/mobile/src/screens/SpotifyConnect.tsx
-import { Button, View, Text } from "react-native"
-import { Linking } from "react-native"
+import { Button, View, Text } from "react-native";
+import * as Linking from "expo-linking";
+import { useRoute } from "@react-navigation/native";
 
-const clientId = process.env.SPOTIFY_CLIENT_ID || "your_spotify_client_id"
-const redirectUri = "http://192.168.86.130:3000/spotify/callback"
-const scopes = "user-modify-playback-state user-read-playback-state"
+const BASE_URL = "http://192.168.86.130:3000";
 
 export default function SpotifyConnect() {
-  const connectSpotify = () => {
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}` +
-      `&response_type=code` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&scope=${encodeURIComponent(scopes)}`
+  const route = useRoute<any>();
+  const { rideId } = route.params;
 
-    Linking.openURL(authUrl)
-  }
+  const connectSpotify = () => {
+    // createURL produces the right scheme for Expo Go (exp://) or production (riderdj://)
+    const redirectTo = Linking.createURL(`driver/${rideId}`);
+
+    const url =
+      `${BASE_URL}/spotify/login` +
+      `?rideId=${encodeURIComponent(rideId)}` +
+      `&redirectTo=${encodeURIComponent(redirectTo)}`;
+
+    console.log("Opening:", url);
+    console.log("Will redirect back to:", redirectTo);
+
+    Linking.openURL(url);
+  };
 
   return (
     <View>
       <Text>Connect your Spotify account to start playing music</Text>
       <Button title="Connect Spotify" onPress={connectSpotify} />
     </View>
-  )
+  );
 }

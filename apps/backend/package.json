@@ -6,12 +6,20 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.5.0",
+    "@fastify/websocket": "^8.3.1",
+    "@prisma/adapter-pg": "^7.6.0",
     "@riderdj/types": "*",
     "@riderdj/validation": "*",
-    "fastify": "^4.0.0"
+    "fastify": "^4.0.0",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@prisma/adapter-pg": "7.6.0",
+    "@prisma/client": "^7.6.0",
+    "@types/node": "^20.19.39",
+    "@types/ws": "^8.18.1",
+    "dotenv": "^17.4.0",
+    "prisma": "^7.7.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0"
   }

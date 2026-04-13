@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Song {
+  id       String   @id @default(uuid())
+  rideId   String
+  trackId  String
+  title    String
+  artist   String
+  albumArt String?
+  votes    Int      @default(1)
+  addedAt  DateTime @default(now())
+}
+
+model Ride {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // optional fields you’ll likely want
+  isActive  Boolean  @default(true)
+}

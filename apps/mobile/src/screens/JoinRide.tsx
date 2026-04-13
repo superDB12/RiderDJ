@@ -8,15 +8,26 @@ export default function JoinRideScreen({ navigation }: any) {
   const [passengerName, setPassengerName] = useState("")
 
   const handleJoinRide = async () => {
+    if (!rideCode.trim()) {
+      setError("Please enter a ride code");
+      return;
+    }
+    if (!passengerName.trim()) {
+      setError("Please enter your name");
+      return;
+    }
+
     try {
-      const data = await joinRide(rideCode, passengerName)
+      const data = await joinRide(rideCode.trim().toUpperCase(), passengerName.trim())
 
       navigation.navigate("Queue", {
         rideId: data.id
       })
 
     } catch (err) {
-      setError("Unable to join ride")
+      const message = err instanceof Error ? err.message : "Unable to join ride";
+      console.error("joinRide error:", err);
+      setError(message);
     }
   }
 

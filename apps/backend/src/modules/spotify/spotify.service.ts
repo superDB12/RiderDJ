@@ -1,4 +1,3 @@
-import fetch from "node-fetch"
 import { SpotifyTokens, SpotifyTrack } from "@riderdj/types"
 import { getTokens, setTokens } from "./token.store";
 
@@ -116,9 +115,16 @@ export async function getCurrentlyPlaying() {
     }
   );
 
-  if (!res.ok) return null;
+  if (res.status === 204) return null; // nothing playing
 
-  const data = await res.json() as { item: SpotifyTrack };
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("SPOTIFY ERROR:", text);
+    return null;
+  }
+
+  const data = await res.json() as any;
+  console.log("CURRENTLY PLAYING ID:", data.item.id);
   return data?.item?.id || null;
 }
 

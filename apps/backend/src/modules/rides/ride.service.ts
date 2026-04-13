@@ -1,5 +1,8 @@
 import { randomUUID } from "crypto";
 import { getCurrentlyPlaying } from "../spotify/spotify.service";
+import { Song } from "@riderdj/types";
+import { rideSockets, songQueue } from "./ride.store";
+import { prisma } from "../../infrastructure/database/prisma";
 
 interface Ride {
   rideId: string
@@ -8,11 +11,29 @@ interface Ride {
   maxQueueSize: number
 }
 
+
+
 const rides = new Map<string, Ride>()
-const songQueue = new Map<string, any[]>(); // 👈 change to any[] for now
 
 function generateJoinCode() {
   return Math.random().toString(36).substring(2, 6).toUpperCase()
+}
+
+export async function broadcastQueue(rideId: string) {
+  const sockets = rideSockets.get(rideId);
+
+  if (!sockets || sockets.size === 0) return;
+
+  const queue = await prisma.song.findMany({
+    where: { rideId },
+    orderBy: { addedAt: "asc" },
+  });
+
+  const payload = JSON.stringify({ songs: queue });
+
+  for (const socket of sockets) {
+    socket.send(payload);
+  }
 }
 
 export async function startRide() {
@@ -39,13 +60,47 @@ export async function joinRide(joinCode: string) {
 }
 
 export async function syncQueueWithSpotify(rideId: string) {
-  const queue = songQueue.get(rideId) || [];
+  const queue = await prisma.song.findMany({
+    where: { rideId },
+    orderBy: { addedAt: "asc" },
+  });
+
+  if (queue.length === 0) return queue;
 
   const currentTrackId = await getCurrentlyPlaying();
 
-  while (queue.length > 0 && queue[0].trackId === currentTrackId) {
-    queue.shift();
+  console.log("🎧 Spotify:", currentTrackId);
+  console.log("📜 Queue BEFORE:", queue.map((s: Song) => s.trackId));
+
+  if (!currentTrackId) return queue;
+
+  if (queue[0]?.trackId === currentTrackId) {
+    console.log("🗑 Removing:", currentTrackId);
+
+    await prisma.song.delete({
+      where: { id: queue[0].id },
+    });
+
+    broadcastQueue(rideId); // 🔥 still needed
   }
 
-  return queue;
+  const updatedQueue = await prisma.song.findMany({
+    where: { rideId },
+    orderBy: { addedAt: "asc" },
+  });
+
+  console.log("📜 Queue AFTER:", updatedQueue.map((s: Song) => s.trackId));
+
+  return updatedQueue;
+}
+
+export function startQueueSync() {
+  setInterval(async () => {
+    console.log("⏱ Running queue sync...");
+
+    for (const rideId of rideSockets.keys()) {
+      console.log("🔁 Syncing ride:", rideId);
+      await syncQueueWithSpotify(rideId);
+    }
+  }, 5000);
 }

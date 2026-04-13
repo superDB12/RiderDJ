@@ -1,7 +1,8 @@
+import 'dotenv/config';
 import { buildApp } from "./app";
 import * as dotenv from "dotenv";
 import path from "path";
-import 'dotenv/config';
+import { startQueueSync } from "./modules/rides/ride.service";
 
 dotenv.config();
 
@@ -13,7 +14,8 @@ async function start() {
   console.log("Server running on http://localhost:3000");
   console.log(app.printRoutes());
   console.log("🚀 SERVER STARTED FROM server.ts");
+
+  startQueueSync();
 }
 
 start();
-

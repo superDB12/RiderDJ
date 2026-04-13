@@ -5,7 +5,6 @@ import { addSong } from "../api/songs"
 import { pushToSpotify, searchSpotify } from "../api/spotify"
 import { Song } from "@riderdj/types";
 
-
 export default function Queue({ route }: any) {
   const { rideId } = route.params
   const [songs, setSongs] = useState<Song[]>([]);
@@ -16,8 +15,34 @@ export default function Queue({ route }: any) {
 
 
   useEffect(() => {
-    loadQueue()
-  }, [])
+    loadQueue();
+    console.log("🎬 Queue screen mounted with rideId:", rideId);
+    const ws = new WebSocket(
+        `ws://192.168.86.130:3000/rides/${rideId}/ws`
+      );
+
+      ws.onopen = () => {
+        console.log("🔌 WebSocket connected");
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("📡 WS DATA:", data);
+        setSongs(data.songs || []);
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket error:", err);
+      };
+
+      ws.onclose = () => {
+        console.log("❌ WebSocket disconnected");
+      };
+
+      return () => {
+        ws.close();
+      };
+    }, [rideId]); // ✅ include rideId
 
   const loadQueue = async () => {
   try {
@@ -30,7 +55,7 @@ export default function Queue({ route }: any) {
     //setSongs(Array.isArray(data) ? data : data.songs || [])
     const songsArray = Array.isArray(data) ? data : data.songs || [];
     setSongs([...songsArray]);
-
+    //setSongs(data.songs || [])
   } catch (err: any) {
     console.error(err)
     setError(err.message)
@@ -42,17 +67,20 @@ export default function Queue({ route }: any) {
   const handleSearch = async () => {
     try {
       setError("");
+      //setLoading(true);
       const data = await searchSpotify(query);
       setResults(data.tracks || []);
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddSong = async (trackId: string) => {
     try {
       setError("");
-      setLoading(true);
+      //setLoading(true);
       await addSong(rideId, trackId);
       await pushToSpotify(trackId);
       await loadQueue(); // refresh queue
@@ -121,11 +149,12 @@ export default function Queue({ route }: any) {
     onChangeText={setQuery}
   />
   <Button title="Search" onPress={handleSearch} />
-
+  {loading && <ActivityIndicator size="large" />}
   {results.length > 0 && <Text style={styles.title}>Search Results 🔍</Text>}
   <FlatList
     data={results}
     keyExtractor={(item) => item.id}
+    ListEmptyComponent={loading ? <ActivityIndicator /> : null}
     renderItem={({ item }) => (
       <TouchableOpacity
         style={styles.song}
