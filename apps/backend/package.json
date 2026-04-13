@@ -2,7 +2,8 @@
   "name": "@riderdj/backend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@fastify/cors": "^8.5.0",
