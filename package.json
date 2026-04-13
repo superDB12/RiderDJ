@@ -29,7 +29,6 @@
   },
   "version": "1.0.0",
   "description": "Music choosing app for riders",
-  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/superDB12/RiderDJ.git"

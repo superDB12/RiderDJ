@@ -420,3 +420,17 @@ FodyWeavers.xsd
 
 #expo
 ./expo
+
+# Root-level leftover mobile files (belong in apps/mobile)
+/index.js
+/App.tsx
+/app.json
+/babel.config.js
+/metro.config.js
+/android/
+
+# Build output
+apps/backend/dist/
+
+# IDE
+.idea/
