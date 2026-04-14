@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, StyleSheet, TextInput, Button, FlatList, TouchableOpacity, ActivityIndicator } from "react-native"
+import { View, Text, StyleSheet, TextInput, Button, FlatList, TouchableOpacity, ActivityIndicator, Keyboard } from "react-native"
 import { getQueue } from "../api/rides"
 import { addSong } from "../api/songs"
 import { searchSpotify } from "../api/spotify"
@@ -65,6 +65,7 @@ export default function Queue({ route }: any) {
 }
 
   const handleSearch = async () => {
+    Keyboard.dismiss();
     try {
       setError("");
       //setLoading(true);
