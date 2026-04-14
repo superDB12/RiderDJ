@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { getCurrentlyPlaying } from "../spotify/spotify.service";
+import { getCurrentlyPlaying, addToSpotifyQueue } from "../spotify/spotify.service";
 import { rideSockets, songQueue } from "./ride.store";
 import { prisma } from "../../infrastructure/database/prisma";
 
@@ -68,29 +68,33 @@ export async function syncQueueWithSpotify(rideId: string) {
 
   const currentTrackId = await getCurrentlyPlaying(rideId);
 
-  console.log("🎧 Spotify:", currentTrackId);
-  console.log("📜 Queue BEFORE:", queue.map((s) => s.trackId));
+  // If the front of our queue is now playing, remove it — it's done
+  if (currentTrackId && queue[0]?.trackId === currentTrackId) {
+    console.log("🗑 Removing played song:", currentTrackId);
+    await prisma.song.delete({ where: { id: queue[0].id } });
+    await broadcastQueue(rideId);
 
-  if (!currentTrackId) return queue;
-
-  if (queue[0]?.trackId === currentTrackId) {
-    console.log("🗑 Removing:", currentTrackId);
-
-    await prisma.song.delete({
-      where: { id: queue[0].id },
-    });
-
-    broadcastQueue(rideId); // 🔥 still needed
+    // Re-fetch so we send the next song below
+    queue.shift();
   }
 
-  const updatedQueue = await prisma.song.findMany({
-    where: { rideId },
-    orderBy: { addedAt: "asc" },
-  });
+  // Send the front of the queue to Spotify if it hasn't been sent yet
+  const next = queue[0];
+  if (next && !next.queuedInSpotify) {
+    try {
+      const cleanTrackId = next.trackId.replace("spotify:track:", "");
+      await addToSpotifyQueue(rideId, cleanTrackId);
+      await prisma.song.update({
+        where: { id: next.id },
+        data: { queuedInSpotify: true },
+      });
+      console.log("🎵 Queued in Spotify:", next.title);
+    } catch (err) {
+      console.error("Failed to queue in Spotify:", err);
+    }
+  }
 
-  console.log("📜 Queue AFTER:", updatedQueue.map((s) => s.trackId));
-
-  return updatedQueue;
+  return queue;
 }
 
 async function expireOldRides() {

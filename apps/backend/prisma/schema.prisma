@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Song {
-  id       String   @id @default(uuid())
-  rideId   String
-  trackId  String
-  title    String
-  artist   String
-  albumArt String?
-  votes    Int      @default(1)
-  addedAt  DateTime @default(now())
+  id               String   @id @default(uuid())
+  rideId           String
+  trackId          String
+  title            String
+  artist           String
+  albumArt         String?
+  votes            Int      @default(1)
+  addedAt          DateTime @default(now())
+  queuedInSpotify  Boolean  @default(false)
 }
 
 model Ride {

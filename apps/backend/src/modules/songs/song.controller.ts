@@ -1,9 +1,8 @@
 import { getQueue, requestSong } from "./song.service"
 import { FastifyRequest, FastifyReply } from "fastify"
 import { Song } from "@riderdj/types"
-import { addToSpotifyQueue } from "../spotify/spotify.service"
-import crypto from "crypto"
-import { getTrackMetadata } from "../spotify/spotify.service";
+import { getTrackMetadata } from "../spotify/spotify.service"
+import crypto from "crypto";
 import { broadcastQueue } from "../rides/ride.service";
 import { prisma } from "../../infrastructure/database/prisma";
 
@@ -47,16 +46,7 @@ export async function addSong(request: FastifyRequest, reply: FastifyReply) {
     };
 
     // 🔥 IMPORTANT: store THIS instead of just trackId
-    await requestSong(rideId, song); // 👈 changed this line
-
-    const cleanTrackId = trackId.replace("spotify:track:", ""); // ensure we only have the ID
-
-    // Queue the song in Spotify
-    try {
-      await addToSpotifyQueue(rideId, cleanTrackId);
-    } catch (err) {
-      console.error("Failed to queue song in Spotify:", err);
-    }
+    await requestSong(rideId, song);
 
     broadcastQueue(rideId);
 

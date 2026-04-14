@@ -80,7 +80,6 @@ export default function Queue({ route }: any) {
     try {
       setError("");
       await addSong(rideId, trackId);
-      await loadQueue(); // refresh queue
       setQuery("");
       setResults([]);
     } catch (err: any) {
