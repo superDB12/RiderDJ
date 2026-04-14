@@ -19,11 +19,12 @@ model Song {
 }
 
 model Ride {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  isActive  Boolean  @default(true)
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  isActive     Boolean   @default(true)
+  rideExpiresAt DateTime?
 
-  // 🔥 Spotify tokens
+  // Spotify tokens
   accessToken  String?
   refreshToken String?
   expiresAt    DateTime?

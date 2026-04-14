@@ -8,13 +8,14 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 
 import * as Clipboard from "expo-clipboard";
 import { getQueue, removeSong, endRide } from "../api/rides";
 
 export default function Driver() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const { rideId } = route.params;
 
   const [songs, setSongs] = useState<any[]>([]);
@@ -71,7 +72,7 @@ export default function Driver() {
         style: "destructive",
         onPress: async () => {
           await endRide(rideId);
-          setSongs([]);
+          navigation.reset({ index: 0, routes: [{ name: "Home" }] });
         },
       },
     ]);

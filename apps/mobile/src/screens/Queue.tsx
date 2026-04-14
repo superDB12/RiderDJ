@@ -9,7 +9,8 @@ export default function Queue({ route }: any) {
   const { rideId } = route.params
   const [songs, setSongs] = useState<Song[]>([]);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
 
@@ -47,20 +48,17 @@ export default function Queue({ route }: any) {
   const loadQueue = async () => {
   try {
     setError("");
-    setLoading(true);
+    setQueueLoading(true);
     const data = await getQueue(rideId)
     console.log("QUEUE DATA:", data) // debug
 
-    // handle both cases: array or object with songs property
-    //setSongs(Array.isArray(data) ? data : data.songs || [])
     const songsArray = Array.isArray(data) ? data : data.songs || [];
     setSongs([...songsArray]);
-    //setSongs(data.songs || [])
   } catch (err: any) {
     console.error(err)
     setError(err.message)
   } finally {
-    setLoading(false);
+    setQueueLoading(false);
   }
 }
 
@@ -68,31 +66,25 @@ export default function Queue({ route }: any) {
     Keyboard.dismiss();
     try {
       setError("");
-      //setLoading(true);
+      setSearchLoading(true);
       const data = await searchSpotify(rideId, query);
       setResults(data.tracks || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   };
 
   const handleAddSong = async (trackId: string) => {
     try {
       setError("");
-      //setLoading(true);
       await addSong(rideId, trackId);
       await loadQueue(); // refresh queue
       setQuery("");
       setResults([]);
-      //alert("Song added 🎶");
-      
-
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -126,7 +118,7 @@ export default function Queue({ route }: any) {
   return (
   <View style={styles.container}>
   <Text style={styles.title}>Current Queue 🎶</Text>
-  {loading ? (
+  {queueLoading ? (
   <ActivityIndicator size="large" />
 ) : songs.length === 0 ? (
   <Text>No songs yet, add some!</Text>
@@ -149,12 +141,11 @@ export default function Queue({ route }: any) {
     onChangeText={setQuery}
   />
   <Button title="Search" onPress={handleSearch} />
-  {loading && <ActivityIndicator size="large" />}
   {results.length > 0 && <Text style={styles.title}>Search Results 🔍</Text>}
   <FlatList
     data={results}
     keyExtractor={(item) => item.id}
-    ListEmptyComponent={loading ? <ActivityIndicator /> : null}
+    ListEmptyComponent={searchLoading ? <ActivityIndicator /> : null}
     renderItem={({ item }) => (
       <TouchableOpacity
         style={styles.song}

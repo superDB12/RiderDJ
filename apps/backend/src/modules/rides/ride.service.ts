@@ -93,9 +93,28 @@ export async function syncQueueWithSpotify(rideId: string) {
   return updatedQueue;
 }
 
+async function expireOldRides() {
+  const expired = await prisma.ride.findMany({
+    where: {
+      isActive: true,
+      rideExpiresAt: { lt: new Date() },
+    },
+    select: { id: true },
+  });
+
+  for (const { id } of expired) {
+    await prisma.ride.update({ where: { id }, data: { isActive: false } });
+    await prisma.song.deleteMany({ where: { rideId: id } });
+    await broadcastQueue(id);
+    console.log(`⏰ Ride ${id} expired and closed`);
+  }
+}
+
 export function startQueueSync() {
   setInterval(async () => {
     console.log("⏱ Running queue sync...");
+
+    await expireOldRides();
 
     for (const rideId of rideSockets.keys()) {
       console.log("🔁 Syncing ride:", rideId);

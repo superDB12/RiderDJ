@@ -5,11 +5,17 @@ import { broadcastQueue } from "./ride.service";
 import { prisma } from "../../infrastructure/database/prisma";
 
 // Create a new ride
+const RIDE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 export async function createRide(request: FastifyRequest<{ Body: { id?: string } }>, reply: FastifyReply) {
   const { id } = request.body ?? {};
 
   const ride = await prisma.ride.create({
-    data: { ...(id ? { id } : {}), isActive: true },
+    data: {
+      ...(id ? { id } : {}),
+      isActive: true,
+      rideExpiresAt: new Date(Date.now() + RIDE_TTL_MS),
+    },
   });
 
   return reply.status(201).send({ id: ride.id });
@@ -26,7 +32,8 @@ export async function joinRide(request: FastifyRequest<{ Params: { rideId: strin
 
   const ride = await prisma.ride.findUnique({ where: { id: rideId } });
 
-  if (!ride || !ride.isActive) {
+  const expired = ride?.rideExpiresAt && ride.rideExpiresAt < new Date();
+  if (!ride || !ride.isActive || expired) {
     return reply.status(404).send("Ride not found");
   }
 
@@ -48,16 +55,13 @@ export async function endRide(request: FastifyRequest, reply: FastifyReply) {
   try {
     const { rideId } = request.params as { rideId: string };
 
-    if (!rideId) {
-      return reply.status(400).send({ error: "rideId is required" });
-    }
-
-    // delete all songs for this ride
-    await prisma.song.deleteMany({
-      where: { rideId },
+    await prisma.ride.update({
+      where: { id: rideId },
+      data: { isActive: false },
     });
 
-    // broadcast empty queue
+    await prisma.song.deleteMany({ where: { rideId } });
+
     await broadcastQueue(rideId);
 
     return reply.send({ success: true });

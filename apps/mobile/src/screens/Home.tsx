@@ -27,13 +27,15 @@ export default function Home({ navigation }: any) {
         <Text style={styles.buttonText}>Connect Spotify</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
+      {/*<TouchableOpacity
         style={styles.button}
         onPress={handleStartRide}
       >
         <Text style={styles.buttonText}>Start Ride</Text>
       </TouchableOpacity>
+      */}
     </View>
+    
   );
 }
 
