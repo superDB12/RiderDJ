@@ -28,6 +28,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@expo/metro-config": "^55.0.9",
+    "babel-preset-expo": "~13.0.0",
     "typescript": "^5.4.0"
   }
 }

@@ -18,7 +18,7 @@ export default function Queue({ route }: any) {
     loadQueue();
     console.log("🎬 Queue screen mounted with rideId:", rideId);
     const ws = new WebSocket(
-        `ws://192.168.86.130:3000/rides/${rideId}/ws`
+        `wss://riderdj-production.up.railway.app/rides/${rideId}/ws`
       );
 
       ws.onopen = () => {

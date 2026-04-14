@@ -43,6 +43,8 @@
   },
   "homepage": "https://github.com/superDB12/RiderDJ#readme",
   "overrides": {
-    "@fastify/cors": "8.5.0"
+    "@fastify/cors": "8.5.0",
+    "@react-native/codegen": "0.83.4",
+    "@react-native/babel-plugin-codegen": "0.83.4"
   }
 }

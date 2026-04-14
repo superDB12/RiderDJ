@@ -17,7 +17,7 @@ export async function spotifyRoutes(app: FastifyInstance) {
       client_id: clientId,
       response_type: "code",
       //redirect_uri: "https://driver-handler-shading.ngrok-free.dev/spotify/callback",
-      redirect_uri: "http://127.0.0.1:3000/spotify/callback",
+      redirect_uri: `${process.env.BACKEND_URL ?? "http://127.0.0.1:3000"}/spotify/callback`,
       scope: "user-modify-playback-state user-read-playback-state",
       state,
     });
@@ -44,11 +44,17 @@ export async function spotifyRoutes(app: FastifyInstance) {
       body: new URLSearchParams({
         grant_type: "authorization_code",
         code,
-        redirect_uri: "http://127.0.0.1:3000/spotify/callback",
+        redirect_uri: `${process.env.BACKEND_URL ?? "http://127.0.0.1:3000"}/spotify/callback`,
       }),
     });
 
     const data = await res.json();
+
+    console.log("SPOTIFY TOKEN RESPONSE:", JSON.stringify(data));
+
+    if (!res.ok || !data.access_token) {
+      return reply.status(502).send({ error: "Spotify token exchange failed", details: data });
+    }
 
     const { rideId, redirectTo } = JSON.parse(Buffer.from(state, "base64").toString());
 

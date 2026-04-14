@@ -17,7 +17,10 @@ export async function buildApp() {
     allowedHeaders: ["Content-Type", "Authorization"],
   });
 
-  app.get("/health", async () => ({ status: "ok" }));
+  app.get("/health", async () => ({
+    status: "ok",
+    BACKEND_URL: process.env.BACKEND_URL ?? "(not set)",
+  }));
 
   await app.register(rideRoutes);
   await app.register(songsRoutes);
