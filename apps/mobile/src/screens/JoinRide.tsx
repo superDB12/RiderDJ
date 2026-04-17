@@ -1,11 +1,38 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { View, Text, TextInput, Button, StyleSheet } from "react-native"
 import { joinRide } from "../api/rides"
 
-export default function JoinRideScreen({ navigation }: any) {
+export default function JoinRideScreen({ route, navigation }: any) {
   const [rideCode, setRideCode] = useState("")
   const [error, setError] = useState("")
   const [passengerName, setPassengerName] = useState("")
+  const rideIdFromLink = route.params?.rideId;
+
+  useEffect(() => {
+  if (rideIdFromLink) {
+    setRideCode(rideIdFromLink);
+  }
+}, [rideIdFromLink]);
+
+  useEffect(() => {
+  if (rideIdFromLink && passengerName) {
+    joinRideWithCode(rideIdFromLink, passengerName);
+  }
+}, [rideIdFromLink, passengerName]);
+
+  const joinRideWithCode = async (code: string, name: string) => {
+  try {
+    const data = await joinRide(code, name);
+
+    navigation.navigate("Queue", {
+      rideId: data.id,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unable to join ride";
+    console.error("joinRide error:", err);
+    setError(message);
+  }
+};
 
   const handleJoinRide = async () => {
     if (!rideCode.trim()) {
@@ -18,12 +45,7 @@ export default function JoinRideScreen({ navigation }: any) {
     }
 
     try {
-      const data = await joinRide(rideCode.trim().toUpperCase(), passengerName.trim())
-
-      navigation.navigate("Queue", {
-        rideId: data.id
-      })
-
+      const data = await joinRideWithCode(rideCode.trim().toUpperCase(), passengerName.trim())
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to join ride";
       console.error("joinRide error:", err);

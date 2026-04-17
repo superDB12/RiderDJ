@@ -14,7 +14,7 @@ export type RootStackParamList = {
   RoleSelect: undefined
   Home: undefined
   SpotifyConnect: { rideId: string }
-  JoinRide: undefined
+  JoinRide: { rideId: string }
   Queue: { rideId: string }
   Driver: { rideId: string }
 }
@@ -28,6 +28,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       Driver: "driver/:rideId",
       Queue: "queue/:rideId",
       SpotifyConnect: "connect",
+      JoinRide: "join/:rideId",
     },
   },
 };

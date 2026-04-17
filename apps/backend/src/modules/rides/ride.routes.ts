@@ -8,6 +8,25 @@ export async function rideRoutes(app: FastifyInstance) {
 
   app.post("/rides/:rideId/join", joinRide)
 
+  app.get("/join/:rideId", (req, reply) => {
+    const { rideId } = req.params as { rideId: string };
+    const deepLink = `riderdj://join/${rideId}`;
+    return reply
+      .header("Content-Type", "text/html")
+      .send(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Opening RiderDJ...</title>
+    <meta http-equiv="refresh" content="0;url=${deepLink}" />
+    <script>window.location.replace("${deepLink}");</script>
+  </head>
+  <body>
+    <p>Opening RiderDJ... <a href="${deepLink}">tap here if it doesn't open</a></p>
+  </body>
+</html>`);
+  });
+
   app.post("/rides/:rideId/end", endRide);  
 
 app.get("/rides/:rideId/ws", { websocket: true }, (connection, req) => {
