@@ -26,6 +26,12 @@
     },
     "web": {
       "favicon": "./apps/mobile/assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "08f1ccb2-5ee6-40a9-aaf1-849bc0ccdaa6"
+      }
+    },
+    "owner": "superdb12"
   }
 }

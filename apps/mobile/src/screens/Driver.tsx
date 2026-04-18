@@ -28,6 +28,8 @@ export default function Driver() {
       `wss://riderdj-production.up.railway.app/rides/${rideId}/ws`
     );
 
+    ws.onopen = () => console.log("🔌 Driver WebSocket connected");
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       setSongs(data.songs || []);
@@ -35,6 +37,8 @@ export default function Driver() {
     };
 
     ws.onerror = (err) => console.error("WebSocket error:", err);
+
+    ws.onclose = () => console.log("❌ Driver WebSocket disconnected");
 
     return () => ws.close();
   }, [rideId]);

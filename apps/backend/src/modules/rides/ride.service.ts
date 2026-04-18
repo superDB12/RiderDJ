@@ -21,12 +21,16 @@ function generateJoinCode() {
 export async function broadcastQueue(rideId: string) {
   const sockets = rideSockets.get(rideId);
 
+  console.log(`📡 broadcastQueue [${rideId}]: ${sockets?.size ?? 0} socket(s) connected`);
+
   if (!sockets || sockets.size === 0) return;
 
   const queue = await prisma.song.findMany({
     where: { rideId },
     orderBy: { addedAt: "asc" },
   });
+
+  console.log(`📡 broadcasting ${queue.length} song(s) to ${sockets.size} client(s)`);
 
   const payload = JSON.stringify({ songs: queue });
 

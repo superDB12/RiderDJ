@@ -48,7 +48,7 @@ export async function addSong(request: FastifyRequest, reply: FastifyReply) {
     // 🔥 IMPORTANT: store THIS instead of just trackId
     await requestSong(rideId, song);
 
-    broadcastQueue(rideId);
+    await broadcastQueue(rideId);
 
     return reply.status(201).send({ status: "queued", song });
   } catch (err) {
