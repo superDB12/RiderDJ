@@ -2,7 +2,7 @@ import { Button, View, Text } from "react-native";
 import * as Linking from "expo-linking";
 import { useRoute } from "@react-navigation/native";
 
-const BASE_URL = "https://riderdj-production.up.railway.app";
+const BASE_URL = process.env.BASE_URL || "https://riderdj-production.up.railway.app";
 
 export default function SpotifyConnect() {
   const route = useRoute<any>();

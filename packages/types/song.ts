@@ -9,4 +9,5 @@ export interface Song {
 
   votes: number;
   addedAt: string; // 👈 change to string (important!)
+  queuedInSpotify: boolean;
 }

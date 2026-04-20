@@ -39,11 +39,29 @@ app.get("/rides/:rideId/ws", { websocket: true }, (connection, req) => {
 
   rideSockets.get(rideId)!.add(socket);
 
-  console.log("🔌 Connected:", rideId);
+  console.log("🔌 Connected:", rideId, "| total:", rideSockets.get(rideId)!.size);
+
+  // Respond to application-level pings so the client's stale-connection detector works
+  socket.on("message", (raw: Buffer) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      if (msg.type === "ping") {
+        socket.send(JSON.stringify({ type: "pong" }));
+      }
+    } catch {}
+  });
+
+  // WS-protocol-level ping every 30s as a secondary keepalive for Railway's proxy
+  const pingInterval = setInterval(() => {
+    if (socket.readyState === socket.OPEN) {
+      socket.ping();
+    }
+  }, 30000);
 
   socket.on("close", () => {
+    clearInterval(pingInterval);
     rideSockets.get(rideId)?.delete(socket);
-    console.log("❌ Disconnected:", rideId);
+    console.log("❌ Disconnected:", rideId, "| remaining:", rideSockets.get(rideId)?.size ?? 0);
   });
 });
 

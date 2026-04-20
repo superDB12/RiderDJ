@@ -12,6 +12,8 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 
 import * as Clipboard from "expo-clipboard";
 import { getQueue, removeSong, endRide } from "../api/rides";
+import { connectSocket, subscribe, onReconnect } from "../lib/socket";
+
 
 export default function Driver() {
   const route = useRoute<any>();
@@ -23,24 +25,24 @@ export default function Driver() {
 
   useEffect(() => {
     loadQueue();
+    connectSocket(rideId);
 
-    const ws = new WebSocket(
-      `wss://riderdj-production.up.railway.app/rides/${rideId}/ws`
-    );
+    const unsubscribe = subscribe((data) => {
+      if (data.songs) {
+        setSongs(data.songs);
+        setLoading(false);
+      }
+    });
 
-    ws.onopen = () => console.log("🔌 Driver WebSocket connected");
+    const unsubscribeReconnect = onReconnect(() => {
+      console.log("🔄 Reconnected — re-syncing queue");
+      loadQueue();
+    });
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setSongs(data.songs || []);
-      setLoading(false);
+    return () => {
+      unsubscribe();
+      unsubscribeReconnect();
     };
-
-    ws.onerror = (err) => console.error("WebSocket error:", err);
-
-    ws.onclose = () => console.log("❌ Driver WebSocket disconnected");
-
-    return () => ws.close();
   }, [rideId]);
 
   const loadQueue = async () => {

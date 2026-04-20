@@ -4,6 +4,7 @@ import { getQueue } from "../api/rides"
 import { addSong } from "../api/songs"
 import { searchSpotify } from "../api/spotify"
 import { Song } from "@riderdj/types";
+import { connectSocket, subscribe, onReconnect } from "../lib/socket";
 
 export default function Queue({ route }: any) {
   const { rideId } = route.params
@@ -14,36 +15,25 @@ export default function Queue({ route }: any) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
 
-
   useEffect(() => {
     loadQueue();
-    console.log("🎬 Queue screen mounted with rideId:", rideId);
-    const ws = new WebSocket(
-        `wss://riderdj-production.up.railway.app/rides/${rideId}/ws`
-      );
+    connectSocket(rideId);
 
-      ws.onopen = () => {
-        console.log("🔌 WebSocket connected");
-      };
+    const unsubscribe = subscribe((data) => {
+      if (data.songs) {
+        setSongs(data.songs);
+      }
+    });
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("📡 WS DATA:", data);
-        setSongs(data.songs || []);
-      };
+    const unsubscribeReconnect = onReconnect(() => {
+      loadQueue();
+    });
 
-      ws.onerror = (err) => {
-        console.error("WebSocket error:", err);
-      };
-
-      ws.onclose = () => {
-        console.log("❌ WebSocket disconnected");
-      };
-
-      return () => {
-        ws.close();
-      };
-    }, [rideId]); // ✅ include rideId
+    return () => {
+      unsubscribe();
+      unsubscribeReconnect();
+    };
+  }, [rideId]);
 
   const loadQueue = async () => {
   try {
