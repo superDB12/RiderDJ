@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View, Text, TouchableOpacity, StyleSheet,
   Alert, FlatList, ActivityIndicator,
 } from "react-native";
 import * as Linking from "expo-linking";
 import { useFocusEffect } from "@react-navigation/native";
-import { createRide, getActiveRides } from "../api/rides";
+import { createRide, getActiveRides, endRide } from "../api/rides";
 import { colors, glow } from "../theme";
 
 const BASE_URL = "https://riderdj-production.up.railway.app";
@@ -56,8 +56,25 @@ export default function Home({ navigation }: any) {
     setLoading(false);
   };
 
-  const handleResumeRide = (existingRideId: string) => {
-    navigation.navigate("Driver", { rideId: existingRideId });
+  const handleEndRide = (existingRideId: string) => {
+    Alert.alert("End Ride", `End ride ${existingRideId}?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "End Ride",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            console.log("Ending ride:", existingRideId);
+            await endRide(existingRideId);
+            console.log("Ride ended successfully:", existingRideId);
+            setActiveRides((prev) => prev.filter((r) => r.id !== existingRideId));
+          } catch (err) {
+            console.error("Failed to end ride:", err);
+            Alert.alert("Error", err instanceof Error ? err.message : "Could not end ride.");
+          }
+        },
+      },
+    ]);
   };
 
   const formatDate = (iso: string) => {
@@ -71,12 +88,6 @@ export default function Home({ navigation }: any) {
       <View style={styles.header}>
         <Text style={styles.title}>Start a Ride</Text>
         <Text style={styles.subtitle}>Connect Spotify to get the music going</Text>
-      </View>
-
-      <View style={styles.rideCodeBox}>
-        <Text style={styles.rideCodeLabel}>NEW RIDE CODE</Text>
-        <Text style={styles.rideCode}>{rideId}</Text>
-        <Text style={styles.rideCodeHint}>Share this with your passengers after connecting</Text>
       </View>
 
       <TouchableOpacity
@@ -110,17 +121,27 @@ export default function Home({ navigation }: any) {
             contentContainerStyle={{ gap: 8 }}
             scrollEnabled={false}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.rideCard}
-                onPress={() => handleResumeRide(item.id)}
-                activeOpacity={0.8}
-              >
-                <View>
-                  <Text style={styles.rideCardCode}>{item.id}</Text>
-                  <Text style={styles.rideCardDate}>{formatDate(item.createdAt)}</Text>
-                </View>
-                <Text style={styles.rideCardArrow}>→</Text>
-              </TouchableOpacity>
+              <View style={styles.rideCard}>
+                <TouchableOpacity
+                  style={styles.rideCardMain}
+                  onPress={() => navigation.navigate("Driver", { rideId: item.id })}
+                  activeOpacity={0.8}
+                >
+                  <View>
+                    <Text style={styles.rideCardCode}>{item.id}</Text>
+                    <Text style={styles.rideCardDate}>{formatDate(item.createdAt)}</Text>
+                  </View>
+                  <Text style={styles.rideCardArrow}>→</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.endButton}
+                  onPress={() => handleEndRide(item.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.endButtonText}>End</Text>
+                </TouchableOpacity>
+              </View>
             )}
           />
         )}
@@ -152,38 +173,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: colors.textSecondary,
-  },
-
-  rideCodeBox: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 24,
-    alignItems: "center",
-    gap: 6,
-  },
-
-  rideCodeLabel: {
-    fontSize: 11,
-    letterSpacing: 3,
-    color: colors.textMuted,
-    fontWeight: "600",
-  },
-
-  rideCode: {
-    fontSize: 42,
-    fontWeight: "900",
-    color: colors.cyan,
-    letterSpacing: 8,
-    ...glow.cyan,
-  },
-
-  rideCodeHint: {
-    fontSize: 12,
-    color: colors.textMuted,
-    textAlign: "center",
-    marginTop: 4,
   },
 
   button: {
@@ -241,11 +230,17 @@ const styles = StyleSheet.create({
   rideCard: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+
+  rideCardMain: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
@@ -266,5 +261,18 @@ const styles = StyleSheet.create({
   rideCardArrow: {
     fontSize: 18,
     color: colors.purple,
+  },
+
+  endButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+  },
+
+  endButtonText: {
+    color: colors.error,
+    fontWeight: "700",
+    fontSize: 13,
   },
 });

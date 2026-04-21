@@ -11,7 +11,7 @@ import {
 import { useRoute, useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
 import { getQueue, removeSong, endRide } from "../api/rides";
-import { connectSocket, subscribe, onReconnect } from "../lib/socket";
+import { connectSocket, subscribe, onReconnect, disconnectSocket } from "../lib/socket";
 import { colors, glow } from "../theme";
 
 export default function Driver() {
@@ -75,6 +75,7 @@ export default function Driver() {
         style: "destructive",
         onPress: async () => {
           await endRide(rideId);
+          disconnectSocket();
           navigation.reset({ index: 0, routes: [{ name: "Home" }] });
         },
       },
