@@ -19,6 +19,7 @@ export default function Queue({ route }: any) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const addedTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     loadQueue();
@@ -71,6 +72,14 @@ export default function Queue({ route }: any) {
       setError("");
       await addSong(rideId, trackId);
       setAddedIds((prev) => new Set(prev).add(trackId));
+      clearTimeout(addedTimers.current[trackId]);
+      addedTimers.current[trackId] = setTimeout(() => {
+        setAddedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(trackId);
+          return next;
+        });
+      }, 2000);
     } catch (err: any) {
       setError(err.message);
     }
@@ -78,6 +87,34 @@ export default function Queue({ route }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Queue */}
+      <View style={styles.queueSection}>
+        <Text style={styles.sectionLabel}>QUEUE</Text>
+        {queueLoading ? (
+          <ActivityIndicator color={colors.purple} />
+        ) : songs.length === 0 ? (
+          <Text style={styles.emptyText}>No songs yet — be the first to add one!</Text>
+        ) : (
+          <FlatList
+            data={songs}
+            keyExtractor={(item, index) => `${item.trackId}-${index}`}
+            contentContainerStyle={{ gap: 6 }}
+            style={{ maxHeight: 280 }}
+            renderItem={({ item, index }) => (
+              <View style={[styles.songCard, index === 0 && styles.songCardActive]}>
+                <Text style={[styles.songIndex, index === 0 && styles.songIndexActive]}>
+                  {index === 0 ? "▶" : index + 1}
+                </Text>
+                <View style={styles.songInfo}>
+                  <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
+                  <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
+                </View>
+              </View>
+            )}
+          />
+        )}
+      </View>
+
       {/* Search */}
       <View style={styles.searchSection}>
         <Text style={styles.sectionLabel}>SEARCH SPOTIFY</Text>
@@ -106,6 +143,9 @@ export default function Queue({ route }: any) {
 
         {results.length > 0 && (
           <View style={styles.resultsList}>
+            <TouchableOpacity onPress={() => { setResults([]); setQuery(""); }} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>✕  Clear results</Text>
+            </TouchableOpacity>
             {results.map((item) => {
               const added = addedIds.has(item.id);
               return (
@@ -131,33 +171,6 @@ export default function Queue({ route }: any) {
         )}
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
-      </View>
-
-      {/* Queue */}
-      <View style={styles.queueSection}>
-        <Text style={styles.sectionLabel}>QUEUE</Text>
-        {queueLoading ? (
-          <ActivityIndicator color={colors.purple} />
-        ) : songs.length === 0 ? (
-          <Text style={styles.emptyText}>No songs yet — be the first to add one!</Text>
-        ) : (
-          <FlatList
-            data={songs}
-            keyExtractor={(item, index) => `${item.trackId}-${index}`}
-            contentContainerStyle={{ gap: 6 }}
-            renderItem={({ item, index }) => (
-              <View style={[styles.songCard, index === 0 && styles.songCardActive]}>
-                <Text style={[styles.songIndex, index === 0 && styles.songIndexActive]}>
-                  {index === 0 ? "▶" : index + 1}
-                </Text>
-                <View style={styles.songInfo}>
-                  <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
-                  <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
-                </View>
-              </View>
-            )}
-          />
-        )}
       </View>
     </View>
   );
@@ -225,6 +238,18 @@ const styles = StyleSheet.create({
     gap: 6,
   },
 
+  clearButton: {
+    alignSelf: "flex-end",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    marginBottom: 4,
+  },
+
+  clearButtonText: {
+    color: colors.textMuted,
+    fontSize: 13,
+  },
+
   resultCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -287,7 +312,7 @@ const styles = StyleSheet.create({
   },
 
   queueSection: {
-    flex: 1,
+    marginBottom: 24,
   },
 
   emptyText: {

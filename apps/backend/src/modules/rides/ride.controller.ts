@@ -46,6 +46,19 @@ export async function getQueueController(
   return reply.send({ songs: queue });
 }
 
+export async function getActiveRides(request: FastifyRequest, reply: FastifyReply) {
+  const rides = await prisma.ride.findMany({
+    where: {
+      isActive: true,
+      rideExpiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, createdAt: true },
+  });
+
+  return reply.send({ rides });
+}
+
 export async function endRide(request: FastifyRequest, reply: FastifyReply) {
   try {
     const { rideId } = request.params as { rideId: string };

@@ -2,6 +2,13 @@ import { API_BASE_URL } from "./config"
 
 const BASE_URL = API_BASE_URL; // your backend IP
 
+export async function getActiveRides(): Promise<{ id: string; createdAt: string }[]> {
+  const res = await fetch(`${BASE_URL}/rides`);
+  if (!res.ok) throw new Error("Failed to fetch rides");
+  const data = await res.json();
+  return data.rides;
+}
+
 export async function createRide(rideId: string) {
   const response = await fetch(`${BASE_URL}/rides`, {
     method: "POST",

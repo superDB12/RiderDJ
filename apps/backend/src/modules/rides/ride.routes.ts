@@ -1,11 +1,13 @@
 import { FastifyInstance } from "fastify";
-import { createRide, joinRide, endRide } from "./ride.controller";
+import { createRide, joinRide, endRide, getActiveRides } from "./ride.controller";
 import { rideSockets } from "./ride.store";
 import { getRideWebPage } from "./ride.web";
 
 export async function rideRoutes(app: FastifyInstance) {
 
   app.post("/rides", createRide)
+
+  app.get("/rides", getActiveRides)
 
   app.post("/rides/:rideId/join", joinRide)
 
