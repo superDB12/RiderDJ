@@ -13,7 +13,8 @@
     },
     "scheme": "riderdj",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.funkyinnovations.riderdj"
     },
     "android": {
       "package": "com.anonymous.riderdj",

@@ -22,13 +22,8 @@ export async function createRide(request: FastifyRequest<{ Body: { id?: string }
 }
 
 // Join an existing ride
-export async function joinRide(request: FastifyRequest<{ Params: { rideId: string }; Body: { passengerName: string } }>, reply: FastifyReply) {
+export async function joinRide(request: FastifyRequest<{ Params: { rideId: string } }>, reply: FastifyReply) {
   const { rideId } = request.params;
-  const { passengerName } = request.body;
-
-  if (!passengerName) {
-    return reply.status(400).send("passengerName required");
-  }
 
   const ride = await prisma.ride.findUnique({ where: { id: rideId } });
 

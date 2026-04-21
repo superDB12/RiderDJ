@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from "react"
-import { View, Text, StyleSheet, TextInput, Button, FlatList, TouchableOpacity, ActivityIndicator, Keyboard } from "react-native"
-import { getQueue } from "../api/rides"
-import { addSong } from "../api/songs"
-import { searchSpotify } from "../api/spotify"
+import React, { useEffect, useState } from "react";
+import {
+  View, Text, StyleSheet, TextInput, TouchableOpacity,
+  FlatList, ActivityIndicator, Keyboard,
+} from "react-native";
+import { getQueue } from "../api/rides";
+import { addSong } from "../api/songs";
+import { searchSpotify } from "../api/spotify";
 import { Song } from "@riderdj/types";
 import { connectSocket, subscribe, onReconnect } from "../lib/socket";
+import { colors, glow } from "../theme";
 
 export default function Queue({ route }: any) {
-  const { rideId } = route.params
+  const { rideId } = route.params;
   const [songs, setSongs] = useState<Song[]>([]);
   const [error, setError] = useState("");
   const [queueLoading, setQueueLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<any[]>([]);
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadQueue();
     connectSocket(rideId);
 
     const unsubscribe = subscribe((data) => {
-      if (data.songs) {
-        setSongs(data.songs);
-      }
+      if (data.songs) setSongs(data.songs);
     });
 
     const unsubscribeReconnect = onReconnect(() => {
@@ -36,24 +39,21 @@ export default function Queue({ route }: any) {
   }, [rideId]);
 
   const loadQueue = async () => {
-  try {
-    setError("");
-    setQueueLoading(true);
-    const data = await getQueue(rideId)
-    console.log("QUEUE DATA:", data) // debug
-
-    const songsArray = Array.isArray(data) ? data : data.songs || [];
-    setSongs([...songsArray]);
-  } catch (err: any) {
-    console.error(err)
-    setError(err.message)
-  } finally {
-    setQueueLoading(false);
-  }
-}
+    try {
+      setQueueLoading(true);
+      const data = await getQueue(rideId);
+      const songsArray = Array.isArray(data) ? data : data.songs || [];
+      setSongs(songsArray);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setQueueLoading(false);
+    }
+  };
 
   const handleSearch = async () => {
     Keyboard.dismiss();
+    if (!query.trim()) return;
     try {
       setError("");
       setSearchLoading(true);
@@ -70,86 +70,275 @@ export default function Queue({ route }: any) {
     try {
       setError("");
       await addSong(rideId, trackId);
-      setQuery("");
-      setResults([]);
+      setAddedIds((prev) => new Set(prev).add(trackId));
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  console.log("SONGS STATE:", songs);
-
-  const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 10,
-  },
-  song: {
-    padding: 10,
-    borderBottomWidth: 1,
-  },
-  songText: {
-    fontSize: 16,
-  },
-  error: {
-    color: "red",
-  },
-});
-
   return (
-  <View style={styles.container}>
-  <Text style={styles.title}>Current Queue 🎶</Text>
-  {queueLoading ? (
-  <ActivityIndicator size="large" />
-) : songs.length === 0 ? (
-  <Text>No songs yet, add some!</Text>
-) : (
-  <FlatList
-    data={songs}
-    keyExtractor={(item, index) => `${item.trackId}-${index}`}
-    renderItem={({ item, index }) => (
-      <Text style={styles.songText}>
-        {index + 1}. {item.title} - {item.artist}
-      </Text>
-    )}
-  />  
-  )}
-  <Text style={styles.title}>Search Spotify 🎧</Text>
-  <TextInput
-    style={styles.input}
-    placeholder="Search for a song..."
-    value={query}
-    onChangeText={setQuery}
-  />
-  <Button title="Search" onPress={handleSearch} />
-  {results.length > 0 && <Text style={styles.title}>Search Results 🔍</Text>}
-  <FlatList
-    data={results}
-    keyExtractor={(item) => item.id}
-    ListEmptyComponent={searchLoading ? <ActivityIndicator /> : null}
-    renderItem={({ item }) => (
-      <TouchableOpacity
-        style={styles.song}
-        onPress={() => handleAddSong(item.id)}
-      >
-        <Text style={styles.songText}>
-          {item.title} - {item.artist}
-        </Text>
-      </TouchableOpacity>
-    )}
-  />
+    <View style={styles.container}>
+      {/* Search */}
+      <View style={styles.searchSection}>
+        <Text style={styles.sectionLabel}>SEARCH SPOTIFY</Text>
+        <View style={styles.searchRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Search for a song..."
+            placeholderTextColor={colors.textMuted}
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+          />
+          <TouchableOpacity
+            style={[styles.searchButton, searchLoading && styles.buttonDisabled]}
+            onPress={handleSearch}
+            disabled={searchLoading}
+            activeOpacity={0.8}
+          >
+            {searchLoading
+              ? <ActivityIndicator color="#000" size="small" />
+              : <Text style={styles.searchButtonText}>Go</Text>
+            }
+          </TouchableOpacity>
+        </View>
 
-  {error ? <Text style={styles.error}>{error}</Text> : null}
-</View>
-  )
+        {results.length > 0 && (
+          <View style={styles.resultsList}>
+            {results.map((item) => {
+              const added = addedIds.has(item.id);
+              return (
+                <View key={item.id} style={styles.resultCard}>
+                  <View style={styles.resultInfo}>
+                    <Text style={styles.resultTitle} numberOfLines={1}>{item.title}</Text>
+                    <Text style={styles.resultArtist} numberOfLines={1}>{item.artist}</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.addButton, added && styles.addButtonDone]}
+                    onPress={() => !added && handleAddSong(item.id)}
+                    disabled={added}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.addButtonText, added && styles.addButtonTextDone]}>
+                      {added ? "✓" : "+"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+      </View>
+
+      {/* Queue */}
+      <View style={styles.queueSection}>
+        <Text style={styles.sectionLabel}>QUEUE</Text>
+        {queueLoading ? (
+          <ActivityIndicator color={colors.purple} />
+        ) : songs.length === 0 ? (
+          <Text style={styles.emptyText}>No songs yet — be the first to add one!</Text>
+        ) : (
+          <FlatList
+            data={songs}
+            keyExtractor={(item, index) => `${item.trackId}-${index}`}
+            contentContainerStyle={{ gap: 6 }}
+            renderItem={({ item, index }) => (
+              <View style={[styles.songCard, index === 0 && styles.songCardActive]}>
+                <Text style={[styles.songIndex, index === 0 && styles.songIndexActive]}>
+                  {index === 0 ? "▶" : index + 1}
+                </Text>
+                <View style={styles.songInfo}>
+                  <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
+                  <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
+                </View>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    </View>
+  );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
 
+  sectionLabel: {
+    fontSize: 11,
+    letterSpacing: 3,
+    color: colors.textMuted,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+
+  searchSection: {
+    marginBottom: 28,
+  },
+
+  searchRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  input: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: colors.textPrimary,
+    fontSize: 15,
+  },
+
+  searchButton: {
+    backgroundColor: colors.pink,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    minWidth: 52,
+    ...glow.pink,
+  },
+
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+
+  searchButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+
+  resultsList: {
+    marginTop: 10,
+    gap: 6,
+  },
+
+  resultCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 10,
+    gap: 10,
+  },
+
+  resultInfo: {
+    flex: 1,
+  },
+
+  resultTitle: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  resultArtist: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 1,
+  },
+
+  addButton: {
+    backgroundColor: colors.purple,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    ...glow.purple,
+  },
+
+  addButtonDone: {
+    backgroundColor: colors.surfaceAlt,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+
+  addButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    lineHeight: 20,
+  },
+
+  addButtonTextDone: {
+    color: colors.cyan,
+    fontSize: 14,
+  },
+
+  error: {
+    color: colors.error,
+    fontSize: 13,
+    marginTop: 8,
+  },
+
+  queueSection: {
+    flex: 1,
+  },
+
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 20,
+  },
+
+  songCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: 10,
+    gap: 12,
+  },
+
+  songCardActive: {
+    borderColor: colors.purpleLight,
+    ...glow.purple,
+  },
+
+  songIndex: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: "600",
+    width: 20,
+    textAlign: "center",
+  },
+
+  songIndexActive: {
+    color: colors.purpleLight,
+    fontSize: 14,
+  },
+
+  songInfo: {
+    flex: 1,
+  },
+
+  songTitle: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  songArtist: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
+});

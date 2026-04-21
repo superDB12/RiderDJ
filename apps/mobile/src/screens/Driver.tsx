@@ -9,11 +9,10 @@ import {
   Alert,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-
 import * as Clipboard from "expo-clipboard";
 import { getQueue, removeSong, endRide } from "../api/rides";
 import { connectSocket, subscribe, onReconnect } from "../lib/socket";
-
+import { colors, glow } from "../theme";
 
 export default function Driver() {
   const route = useRoute<any>();
@@ -35,7 +34,6 @@ export default function Driver() {
     });
 
     const unsubscribeReconnect = onReconnect(() => {
-      console.log("🔄 Reconnected — re-syncing queue");
       loadQueue();
     });
 
@@ -64,17 +62,16 @@ export default function Driver() {
   const handleRemoveSong = async (songId: string) => {
     try {
       await removeSong(songId);
-      // WebSocket will auto-update UI
     } catch (err) {
       console.error(err);
     }
   };
 
   const handleEndRide = async () => {
-    Alert.alert("End Ride", "Are you sure?", [
-      { text: "Cancel" },
+    Alert.alert("End Ride", "Are you sure you want to end this ride?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: "End",
+        text: "End Ride",
         style: "destructive",
         onPress: async () => {
           await endRide(rideId);
@@ -86,53 +83,54 @@ export default function Driver() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🚗 Driver Dashboard</Text>
-
-      {/* RIDE CONTROL */}
-      <View style={styles.rideBox}>
-        <Text style={styles.subtitle}>Ride Code</Text>
-        <Text style={styles.rideId}>{rideId}</Text>
-
-        <TouchableOpacity style={styles.copyButton} onPress={handleCopyRideId}>
-          <Text style={styles.buttonText}>Copy Code</Text>
-        </TouchableOpacity>
-
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Driver Dashboard</Text>
+          <Text style={styles.subtitle}>Your ride is live</Text>
+        </View>
         <TouchableOpacity style={styles.endButton} onPress={handleEndRide}>
-          <Text style={styles.buttonText}>End Ride</Text>
+          <Text style={styles.endButtonText}>End</Text>
         </TouchableOpacity>
       </View>
 
-      {/* QUEUE */}
-      <Text style={styles.subtitle}>Queue</Text>
+      {/* Ride code */}
+      <TouchableOpacity style={styles.rideCodeBox} onPress={handleCopyRideId} activeOpacity={0.7}>
+        <Text style={styles.rideCodeLabel}>RIDE CODE — TAP TO COPY</Text>
+        <Text style={styles.rideCode}>{rideId}</Text>
+      </TouchableOpacity>
+
+      {/* Queue */}
+      <Text style={styles.sectionLabel}>QUEUE</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" />
+        <ActivityIndicator color={colors.purple} style={{ marginTop: 20 }} />
       ) : songs.length === 0 ? (
-        <Text style={styles.empty}>No songs yet</Text>
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyText}>No songs yet</Text>
+          <Text style={styles.emptyHint}>Passengers can add songs using the ride code</Text>
+        </View>
       ) : (
         <FlatList
           data={songs}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ gap: 8 }}
           renderItem={({ item, index }) => (
-            <View
-              style={[
-                styles.song,
-                index === 0 && styles.nowPlaying, // highlight first song
-              ]}
-            >
-              <View>
-                <Text style={styles.songText}>
-                  {index + 1}. {item.title}
+            <View style={[styles.songCard, index === 0 && styles.songCardActive]}>
+              <View style={styles.songIndex}>
+                <Text style={[styles.songIndexText, index === 0 && styles.songIndexActive]}>
+                  {index === 0 ? "▶" : index + 1}
                 </Text>
-                <Text style={styles.artist}>{item.artist}</Text>
-                <Text style={styles.votes}>👍 {item.votes}</Text>
               </View>
-
+              <View style={styles.songInfo}>
+                <Text style={styles.songTitle} numberOfLines={1}>{item.title}</Text>
+                <Text style={styles.songArtist} numberOfLines={1}>{item.artist}</Text>
+              </View>
               <TouchableOpacity
                 style={styles.removeButton}
                 onPress={() => handleRemoveSong(item.id)}
               >
-                <Text style={{ color: "white" }}>Remove</Text>
+                <Text style={styles.removeButtonText}>✕</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -143,64 +141,153 @@ export default function Driver() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
 
-  title: { fontSize: 26, marginBottom: 20 },
-
-  subtitle: { fontSize: 18, marginVertical: 10 },
-
-  rideBox: {
-    backgroundColor: "#eee",
-    padding: 15,
-    borderRadius: 10,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 20,
-    alignItems: "center",
   },
 
-  rideId: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginVertical: 10,
+  title: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: colors.textPrimary,
   },
 
-  copyButton: {
-    backgroundColor: "black",
-    padding: 8,
-    borderRadius: 6,
-    marginBottom: 10,
+  subtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
 
   endButton: {
-    backgroundColor: "red",
-    padding: 8,
-    borderRadius: 6,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.error,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
 
-  buttonText: { color: "white" },
+  endButtonText: {
+    color: colors.error,
+    fontWeight: "700",
+    fontSize: 13,
+  },
 
-  empty: { textAlign: "center", marginTop: 20 },
+  rideCodeBox: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.cyan,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginBottom: 24,
+    ...glow.cyan,
+  },
 
-  song: {
+  rideCodeLabel: {
+    fontSize: 10,
+    letterSpacing: 3,
+    color: colors.textMuted,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+
+  rideCode: {
+    fontSize: 36,
+    fontWeight: "900",
+    color: colors.cyan,
+    letterSpacing: 8,
+  },
+
+  sectionLabel: {
+    fontSize: 11,
+    letterSpacing: 3,
+    color: colors.textMuted,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+
+  emptyBox: {
+    alignItems: "center",
+    marginTop: 40,
+    gap: 6,
+  },
+
+  emptyText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  emptyHint: {
+    color: colors.textMuted,
+    fontSize: 13,
+    textAlign: "center",
+  },
+
+  songCard: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: 12,
-    borderBottomWidth: 1,
+    gap: 12,
   },
 
-  nowPlaying: {
-    backgroundColor: "#d4f8d4",
+  songCardActive: {
+    borderColor: colors.purpleLight,
+    ...glow.purple,
   },
 
-  songText: { fontSize: 16 },
+  songIndex: {
+    width: 28,
+    alignItems: "center",
+  },
 
-  artist: { color: "gray" },
+  songIndexText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: "600",
+  },
 
-  votes: { fontSize: 12 },
+  songIndexActive: {
+    color: colors.purpleLight,
+    fontSize: 16,
+  },
+
+  songInfo: {
+    flex: 1,
+  },
+
+  songTitle: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  songArtist: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
 
   removeButton: {
-    backgroundColor: "red",
     padding: 6,
-    borderRadius: 6,
-    justifyContent: "center",
+  },
+
+  removeButtonText: {
+    color: colors.textMuted,
+    fontSize: 14,
   },
 });

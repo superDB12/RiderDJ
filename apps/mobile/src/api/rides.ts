@@ -17,13 +17,9 @@ export async function createRide(rideId: string) {
   return response.json();
 }
 
-export async function joinRide(rideId: string, passengerName: string) {
+export async function joinRide(rideId: string) {
   const response = await fetch(`${BASE_URL}/rides/${rideId}/join`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ passengerName }),
   });
 
   if (!response.ok) {
