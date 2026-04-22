@@ -13,7 +13,7 @@ export async function buildApp() {
   // ✅ REGISTER CORS (this is the missing piece)
   await app.register(cors as any, {
     origin: true,
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   });
 
