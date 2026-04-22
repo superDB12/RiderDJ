@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useKeepAwake } from "expo-keep-awake";
 import {
   View,
   Text,
@@ -19,6 +20,8 @@ export default function Driver() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { rideId } = route.params;
+
+  useKeepAwake();
 
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

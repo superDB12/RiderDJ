@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useKeepAwake } from "expo-keep-awake";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   FlatList, ActivityIndicator, Keyboard, Image,
@@ -12,6 +13,8 @@ import { colors, glow } from "../theme";
 
 export default function Queue({ route }: any) {
   const { rideId } = route.params;
+  useKeepAwake();
+
   const [songs, setSongs] = useState<Song[]>([]);
   const [error, setError] = useState("");
   const [queueLoading, setQueueLoading] = useState(false);
