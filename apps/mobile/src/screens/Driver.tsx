@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Image,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
@@ -101,6 +102,15 @@ export default function Driver() {
         </TouchableOpacity>
       </View>
 
+      {/* QR code */}
+      <View style={styles.qrBox}>
+        <Text style={styles.qrLabel}>SCAN TO JOIN</Text>
+        <Image
+          style={styles.qrImage}
+          source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://riderdj-production.up.railway.app/ride/${rideId}`)}&color=a855f7&bgcolor=110d24&margin=2` }}
+        />
+      </View>
+
       {/* Ride code */}
       <TouchableOpacity style={styles.rideCodeBox} onPress={handleCopyRideId} activeOpacity={0.7}>
         <Text style={styles.rideCodeLabel}>RIDE CODE — TAP TO COPY</Text>
@@ -187,6 +197,28 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontWeight: "700",
     fontSize: 13,
+  },
+
+  qrBox: {
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 8,
+  },
+
+  qrLabel: {
+    fontSize: 10,
+    letterSpacing: 3,
+    color: colors.textMuted,
+    fontWeight: "600",
+  },
+
+  qrImage: {
+    width: 160,
+    height: 160,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.purple,
+    ...glow.purple,
   },
 
   rideCodeBox: {

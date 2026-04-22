@@ -158,7 +158,7 @@ export function getRideWebPage(rideId: string): string {
   <section>
     <div class="label">Search Spotify</div>
     <div class="search-row">
-      <input type="text" id="search-input" placeholder="Search for a song..." />
+      <input type="text" id="search-input" placeholder="Search for a song by title or artist..." />
       <button class="btn-search" id="search-btn" onclick="handleSearch()">Go</button>
     </div>
     <div id="results"></div>

@@ -22,6 +22,7 @@ export default function Queue({ route }: any) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [alreadyIds, setAlreadyIds] = useState<Set<string>>(new Set());
   const addedTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
@@ -84,7 +85,19 @@ export default function Queue({ route }: any) {
         });
       }, 2000);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === "Song already in queue") {
+        setAlreadyIds((prev) => new Set(prev).add(trackId));
+        clearTimeout(addedTimers.current[trackId]);
+        addedTimers.current[trackId] = setTimeout(() => {
+          setAlreadyIds((prev) => {
+            const next = new Set(prev);
+            next.delete(trackId);
+            return next;
+          });
+        }, 2000);
+      } else {
+        setError(err.message);
+      }
     }
   };
 
@@ -92,7 +105,7 @@ export default function Queue({ route }: any) {
     <View style={styles.container}>
       {/* Queue */}
       <View style={styles.queueSection}>
-        <Text style={styles.sectionLabel}>QUEUE</Text>
+        <Text style={styles.sectionLabel}>Queue</Text>
         {queueLoading ? (
           <ActivityIndicator color={colors.purple} />
         ) : songs.length === 0 ? (
@@ -124,7 +137,7 @@ export default function Queue({ route }: any) {
         <View style={styles.searchRow}>
           <TextInput
             style={styles.input}
-            placeholder="Search for a song..."
+            placeholder="Search for a song by title or artist..."
             placeholderTextColor={colors.textMuted}
             value={query}
             onChangeText={setQuery}
@@ -162,23 +175,26 @@ export default function Queue({ route }: any) {
             </TouchableOpacity>
             {results.map((item) => {
               const added = addedIds.has(item.id);
+              const already = alreadyIds.has(item.id);
+              const busy = added || already;
               return (
-                <View key={item.id} style={styles.resultCard}>
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.resultCard}
+                  onPress={() => !busy && handleAddSong(item.id)}
+                  disabled={busy}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.resultInfo}>
                     <Text style={styles.resultTitle} numberOfLines={1}>{item.title}</Text>
                     <Text style={styles.resultArtist} numberOfLines={1}>{item.artist}</Text>
                   </View>
-                  <TouchableOpacity
-                    style={[styles.addButton, added && styles.addButtonDone]}
-                    onPress={() => !added && handleAddSong(item.id)}
-                    disabled={added}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.addButtonText, added && styles.addButtonTextDone]}>
-                      {added ? "✓" : "+"}
+                  <View style={[styles.addButton, added && styles.addButtonDone, already && styles.addButtonAlready]}>
+                    <Text style={[styles.addButtonText, added && styles.addButtonTextDone, already && styles.addButtonTextAlready]}>
+                      {added ? "✓" : already ? "!" : "+"}
                     </Text>
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                </TouchableOpacity>
               );
             })}
           </View>
@@ -307,6 +323,12 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
 
+  addButtonAlready: {
+    backgroundColor: colors.surfaceAlt,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+
   addButtonText: {
     color: "#fff",
     fontSize: 18,
@@ -317,6 +339,12 @@ const styles = StyleSheet.create({
   addButtonTextDone: {
     color: colors.cyan,
     fontSize: 14,
+  },
+
+  addButtonTextAlready: {
+    color: "#f59e0b",
+    fontSize: 16,
+    fontWeight: "700",
   },
 
   error: {

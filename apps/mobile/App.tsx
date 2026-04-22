@@ -50,12 +50,12 @@ export default function App() {
         />
 
         {/* DRIVER FLOW */}
-        <Stack.Screen name="Home" component={Home} options={{ title: "New Ride" }} />
+        <Stack.Screen name="Home" component={Home} options={{ title: "RiderDJ" }} />
         <Stack.Screen name="Driver" component={Driver} options={{ title: "RiderDJ", headerBackVisible: false }} />
 
         {/* PASSENGER FLOW */}
-        <Stack.Screen name="JoinRide" component={JoinRideScreen} options={{ title: "Join Ride" }} />
-        <Stack.Screen name="Queue" component={Queue} options={{ title: "Queue" }} />
+        <Stack.Screen name="JoinRide" component={JoinRideScreen} options={{ title: "RiderDJ" }} />
+        <Stack.Screen name="Queue" component={Queue} options={{ title: "RiderDJ" }} />
 
       </Stack.Navigator>
     </NavigationContainer>
