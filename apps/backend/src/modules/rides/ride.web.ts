@@ -4,137 +4,164 @@ export function getRideWebPage(rideId: string): string {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RiderDJ – Add Songs</title>
+  <title>RiderDJ</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg:         #07060f;
+      --surface:    #110d24;
+      --surface2:   #1a1535;
+      --border:     #2a2050;
+      --purple:     #7c3aed;
+      --purple-lt:  #a855f7;
+      --pink:       #ec4899;
+      --cyan:       #06b6d4;
+      --green:      #1db954;
+      --text:       #f0eaff;
+      --text-sec:   #8b7aa8;
+      --text-muted: #4b4268;
+      --error:      #f87171;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0f0f0f;
-      color: #f0f0f0;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      padding: 20px 16px 40px;
+      padding: 20px 16px 60px;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
-    h1 { font-size: 22px; margin-bottom: 4px; }
-    .ride-code { font-size: 13px; color: #888; margin-bottom: 24px; }
+    /* ── Header ── */
+    .header { margin-bottom: 20px; }
+    .logo { font-size: 26px; font-weight: 900; letter-spacing: 2px; }
+    .tagline { font-size: 11px; letter-spacing: 4px; color: var(--cyan); font-weight: 600; margin-top: 2px; }
+
+    /* ── Status bar ── */
+    .status-bar {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--text-muted); flex-shrink: 0;
+    }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ── Section labels ── */
+    .label {
+      font-size: 10px; letter-spacing: 3px; color: var(--text-muted);
+      font-weight: 600; margin-bottom: 10px; text-transform: uppercase;
+    }
 
     section { margin-bottom: 28px; }
-    h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 12px; }
 
-    /* Search */
-    .search-row { display: flex; gap: 8px; }
+    /* ── Queue ── */
+    .queue-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .queue-item.now-playing {
+      border-color: var(--purple-lt);
+      box-shadow: 0 0 10px rgba(168,85,247,0.4);
+    }
+    .queue-num { font-size: 13px; color: var(--text-muted); width: 20px; flex-shrink: 0; text-align: center; }
+    .queue-num.active { color: var(--purple-lt); font-size: 14px; }
+    .queue-info { flex: 1; min-width: 0; }
+    .queue-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .queue-artist { font-size: 12px; color: var(--text-sec); margin-top: 2px; }
+    .empty { color: var(--text-muted); font-size: 14px; padding: 8px 0; text-align: center; }
+
+    /* ── Search ── */
+    .search-row { display: flex; gap: 8px; margin-bottom: 12px; }
     input[type="text"] {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #1a1a1a;
-      color: #f0f0f0;
-      font-size: 15px;
-      outline: none;
+      flex: 1; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); font-size: 15px; outline: none;
     }
-    input[type="text"]:focus { border-color: #1db954; }
-    button {
-      padding: 10px 16px;
-      border-radius: 8px;
-      border: none;
-      background: #1db954;
-      color: #000;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    button:active { opacity: 0.8; }
-    button:disabled { opacity: 0.4; cursor: default; }
+    input[type="text"]:focus { border-color: var(--purple); }
 
-    /* Track list */
-    .track-list { display: flex; flex-direction: column; gap: 2px; }
+    .btn-search {
+      padding: 12px 18px; border-radius: 12px; border: none;
+      background: var(--pink); color: #fff; font-weight: 700;
+      font-size: 15px; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 0 12px rgba(236,72,153,0.5);
+    }
+    .btn-search:disabled { opacity: 0.4; cursor: default; }
+    .btn-search:active { opacity: 0.8; }
+
+    /* ── Clear button ── */
+    .clear-btn {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 13px; cursor: pointer; padding: 2px 0;
+      display: block; margin-left: auto; margin-bottom: 8px;
+    }
+    .clear-btn:hover { color: var(--text-sec); }
+
+    /* ── Results ── */
     .track {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: #1a1a1a;
-      gap: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; border-radius: 10px;
+      background: var(--surface); border: 1px solid var(--border);
+      gap: 12px; margin-bottom: 6px;
     }
     .track-info { flex: 1; min-width: 0; }
-    .track-title { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track-artist { font-size: 13px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .track .add-btn {
-      padding: 6px 14px;
-      font-size: 13px;
-      flex-shrink: 0;
+    .track-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-artist { font-size: 12px; color: var(--text-sec); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .add-btn {
+      width: 32px; height: 32px; border-radius: 50%; border: none;
+      background: var(--purple); color: #fff;
+      font-size: 20px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 10px rgba(124,58,237,0.6);
+      line-height: 1;
     }
-    .track .add-btn.added { background: #333; color: #888; cursor: default; }
+    .add-btn.added { background: var(--surface2); color: var(--cyan); font-size: 14px; box-shadow: none; cursor: default; }
+    .add-btn:active { opacity: 0.8; }
 
-    /* Queue */
-    .queue-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: #1a1a1a;
-      margin-bottom: 2px;
-    }
-    .queue-num { font-size: 13px; color: #555; width: 20px; flex-shrink: 0; }
-    .queue-info { flex: 1; min-width: 0; }
-    .queue-title { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .queue-artist { font-size: 12px; color: #888; }
-    .empty { color: #555; font-size: 14px; padding: 8px 0; }
-
-    /* Status */
-    .status-dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      margin-right: 6px;
-      background: #555;
-    }
-    .status-dot.connected { background: #1db954; }
-    .status-bar { font-size: 12px; color: #666; margin-bottom: 20px; display: flex; align-items: center; }
-
+    /* ── Toast ── */
     .toast {
-      position: fixed;
-      bottom: 24px; left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%);
-      background: #1db954;
-      color: #000;
-      font-weight: 600;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
+      background: var(--purple); color: #fff;
+      font-weight: 600; padding: 10px 22px;
+      border-radius: 20px; font-size: 14px;
+      opacity: 0; transition: opacity 0.2s; pointer-events: none;
+      white-space: nowrap;
     }
     .toast.show { opacity: 1; }
   </style>
 </head>
 <body>
-  <h1>🎵 RiderDJ</h1>
-  <p class="ride-code">Ride: ${rideId}</p>
+  <div class="header">
+    <div class="logo">RiderDJ</div>
+    <div class="tagline">YOUR RIDE. YOUR MUSIC.</div>
+  </div>
 
   <div class="status-bar">
     <span class="status-dot" id="dot"></span>
     <span id="status-text">Connecting...</span>
   </div>
 
+  <!-- Queue -->
   <section>
-    <h2>Search Spotify</h2>
-    <div class="search-row">
-      <input type="text" id="search-input" placeholder="Search for a song..." />
-      <button id="search-btn" onclick="handleSearch()">Search</button>
-    </div>
-    <div class="track-list" id="results" style="margin-top: 10px;"></div>
+    <div class="label">Queue</div>
+    <div id="queue-list"><p class="empty">No songs yet</p></div>
   </section>
 
+  <!-- Search -->
   <section>
-    <h2>Queue</h2>
-    <div id="queue-list"><p class="empty">No songs yet</p></div>
+    <div class="label">Search Spotify</div>
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Search for a song..." />
+      <button class="btn-search" id="search-btn" onclick="handleSearch()">Go</button>
+    </div>
+    <div id="results"></div>
   </section>
 
   <div class="toast" id="toast"></div>
@@ -184,7 +211,7 @@ export function getRideWebPage(rideId: string): string {
 
     function setStatus(connected) {
       document.getElementById("dot").className = "status-dot" + (connected ? " connected" : "");
-      document.getElementById("status-text").textContent = connected ? "Connected" : "Reconnecting...";
+      document.getElementById("status-text").textContent = connected ? "Connected · " + RIDE_ID : "Reconnecting...";
     }
 
     // ── Queue ─────────────────────────────────────────────────
@@ -192,17 +219,16 @@ export function getRideWebPage(rideId: string): string {
       try {
         const res = await fetch(BASE + "/rides/" + RIDE_ID + "/queue");
         const data = await res.json();
-        const songs = Array.isArray(data) ? data : data.songs || [];
-        renderQueue(songs);
+        renderQueue(Array.isArray(data) ? data : data.songs || []);
       } catch {}
     }
 
     function renderQueue(songs) {
       const el = document.getElementById("queue-list");
-      if (!songs.length) { el.innerHTML = '<p class="empty">No songs yet</p>'; return; }
+      if (!songs.length) { el.innerHTML = '<p class="empty">No songs yet — be the first to add one!</p>'; return; }
       el.innerHTML = songs.map((s, i) => \`
-        <div class="queue-item">
-          <span class="queue-num">\${i + 1}</span>
+        <div class="queue-item\${i === 0 ? " now-playing" : ""}">
+          <span class="queue-num\${i === 0 ? " active" : ""}">\${i === 0 ? "▶" : i + 1}</span>
           <div class="queue-info">
             <div class="queue-title">\${esc(s.title)}</div>
             <div class="queue-artist">\${esc(s.artist)}</div>
@@ -228,22 +254,29 @@ export function getRideWebPage(rideId: string): string {
         showToast("Search failed");
       } finally {
         btn.disabled = false;
-        btn.textContent = "Search";
+        btn.textContent = "Go";
       }
     }
 
     function renderResults(tracks) {
       const el = document.getElementById("results");
-      if (!tracks.length) { el.innerHTML = '<p class="empty" style="margin-top:8px">No results</p>'; return; }
-      el.innerHTML = tracks.map(t => \`
-        <div class="track" id="track-\${esc(t.id)}">
-          <div class="track-info">
-            <div class="track-title">\${esc(t.title)}</div>
-            <div class="track-artist">\${esc(t.artist)}</div>
+      if (!tracks.length) { el.innerHTML = '<p class="empty">No results</p>'; return; }
+      el.innerHTML =
+        \`<button class="clear-btn" onclick="clearResults()">✕  Clear results</button>\` +
+        tracks.map(t => \`
+          <div class="track">
+            <div class="track-info">
+              <div class="track-title">\${esc(t.title)}</div>
+              <div class="track-artist">\${esc(t.artist)}</div>
+            </div>
+            <button class="add-btn" id="add-\${esc(t.id)}" onclick="addSong('\${esc(t.id)}', this)">+</button>
           </div>
-          <button class="add-btn" onclick="addSong('\${esc(t.id)}', this)">Add</button>
-        </div>
-      \`).join("");
+        \`).join("");
+    }
+
+    function clearResults() {
+      document.getElementById("results").innerHTML = "";
+      document.getElementById("search-input").value = "";
     }
 
     // ── Add song ──────────────────────────────────────────────
@@ -259,12 +292,19 @@ export function getRideWebPage(rideId: string): string {
         });
 
         if (!res.ok) throw new Error();
-        btn.textContent = "Added";
+        btn.textContent = "✓";
         btn.className = "add-btn added";
         showToast("Song added!");
+
+        // Reset after 2s so user can add again
+        setTimeout(() => {
+          btn.textContent = "+";
+          btn.className = "add-btn";
+          btn.disabled = false;
+        }, 2000);
       } catch {
         btn.disabled = false;
-        btn.textContent = "Add";
+        btn.textContent = "+";
         showToast("Failed to add song");
       }
     }

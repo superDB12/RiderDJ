@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Alert, FlatList, ActivityIndicator,
+  Alert, ScrollView, ActivityIndicator, Platform,
 } from "react-native";
 import * as Linking from "expo-linking";
 import { useFocusEffect } from "@react-navigation/native";
@@ -56,25 +56,24 @@ export default function Home({ navigation }: any) {
     setLoading(false);
   };
 
+  const doEndRide = async (existingRideId: string) => {
+    try {
+      await endRide(existingRideId);
+      setActiveRides((prev) => prev.filter((r) => r.id !== existingRideId));
+    } catch (err) {
+      console.error("Failed to end ride:", err);
+    }
+  };
+
   const handleEndRide = (existingRideId: string) => {
-    Alert.alert("End Ride", `End ride ${existingRideId}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "End Ride",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            console.log("Ending ride:", existingRideId);
-            await endRide(existingRideId);
-            console.log("Ride ended successfully:", existingRideId);
-            setActiveRides((prev) => prev.filter((r) => r.id !== existingRideId));
-          } catch (err) {
-            console.error("Failed to end ride:", err);
-            Alert.alert("Error", err instanceof Error ? err.message : "Could not end ride.");
-          }
-        },
-      },
-    ]);
+    if (Platform.OS === "web") {
+      doEndRide(existingRideId);
+    } else {
+      Alert.alert("End Ride", `End ride ${existingRideId}?`, [
+        { text: "Cancel", style: "cancel" },
+        { text: "End Ride", style: "destructive", onPress: () => doEndRide(existingRideId) },
+      ]);
+    }
   };
 
   const formatDate = (iso: string) => {
@@ -115,13 +114,9 @@ export default function Home({ navigation }: any) {
         ) : activeRides.length === 0 ? (
           <Text style={styles.emptyText}>No active rides</Text>
         ) : (
-          <FlatList
-            data={activeRides}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ gap: 8 }}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-              <View style={styles.rideCard}>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {activeRides.map((item) => (
+              <View key={item.id} style={styles.rideCard}>
                 <TouchableOpacity
                   style={styles.rideCardMain}
                   onPress={() => navigation.navigate("Driver", { rideId: item.id })}
@@ -142,8 +137,8 @@ export default function Home({ navigation }: any) {
                   <Text style={styles.endButtonText}>End</Text>
                 </TouchableOpacity>
               </View>
-            )}
-          />
+            ))}
+          </ScrollView>
         )}
       </View>
     </View>

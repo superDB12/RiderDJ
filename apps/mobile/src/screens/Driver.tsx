@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
@@ -67,19 +68,21 @@ export default function Driver() {
     }
   };
 
-  const handleEndRide = async () => {
-    Alert.alert("End Ride", "Are you sure you want to end this ride?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "End Ride",
-        style: "destructive",
-        onPress: async () => {
-          await endRide(rideId);
-          disconnectSocket();
-          navigation.reset({ index: 0, routes: [{ name: "Home" }] });
-        },
-      },
-    ]);
+  const doEndRide = async () => {
+    await endRide(rideId);
+    disconnectSocket();
+    navigation.reset({ index: 0, routes: [{ name: "Home" }] });
+  };
+
+  const handleEndRide = () => {
+    if (Platform.OS === "web") {
+      doEndRide();
+    } else {
+      Alert.alert("End Ride", "Are you sure you want to end this ride?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "End Ride", style: "destructive", onPress: doEndRide },
+      ]);
+    }
   };
 
   return (

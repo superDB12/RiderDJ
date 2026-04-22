@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  FlatList, ActivityIndicator, Keyboard,
+  FlatList, ActivityIndicator, Keyboard, Image,
 } from "react-native";
 import { getQueue } from "../api/rides";
 import { addSong } from "../api/songs";
@@ -140,6 +140,17 @@ export default function Queue({ route }: any) {
             }
           </TouchableOpacity>
         </View>
+
+        {results.length === 0 && (
+          <View style={styles.qrBox}>
+            <Text style={styles.qrLabel}>SCAN TO JOIN THIS RIDE</Text>
+            <Image
+              style={styles.qrImage}
+              source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://riderdj-production.up.railway.app/ride/${rideId}`)}&color=a855f7&bgcolor=110d24&margin=2` }}
+            />
+            <Text style={styles.qrSub}>{rideId}</Text>
+          </View>
+        )}
 
         {results.length > 0 && (
           <View style={styles.resultsList}>
@@ -309,6 +320,35 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontSize: 13,
     marginTop: 8,
+  },
+
+  qrBox: {
+    alignItems: "center",
+    paddingVertical: 20,
+    gap: 10,
+  },
+
+  qrLabel: {
+    fontSize: 10,
+    letterSpacing: 3,
+    color: colors.textMuted,
+    fontWeight: "600",
+  },
+
+  qrImage: {
+    width: 180,
+    height: 180,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.purple,
+    ...glow.purple,
+  },
+
+  qrSub: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: colors.purpleLight,
+    letterSpacing: 6,
   },
 
   queueSection: {
