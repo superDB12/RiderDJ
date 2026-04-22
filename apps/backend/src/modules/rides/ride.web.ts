@@ -291,7 +291,14 @@ export function getRideWebPage(rideId: string): string {
           body: JSON.stringify({ trackId }),
         });
 
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          let msg = "Failed to add song";
+          try { const j = await res.json(); if (j.error) msg = j.error; } catch {}
+          btn.disabled = false;
+          btn.textContent = "+";
+          showToast(msg);
+          return;
+        }
         btn.textContent = "✓";
         btn.className = "add-btn added";
         showToast("Song added!");

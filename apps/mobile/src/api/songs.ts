@@ -13,7 +13,14 @@ export async function addSong(rideId: string, trackId: string) {
   });
 
   if (!res.ok) {
-    throw new Error(await res.text());
+    const body = await res.text();
+    try {
+      const json = JSON.parse(body);
+      throw new Error(json.error || body);
+    } catch (parseErr) {
+      if (parseErr instanceof SyntaxError) throw new Error(body);
+      throw parseErr;
+    }
   }
   console.log("addSong response:", res);
 

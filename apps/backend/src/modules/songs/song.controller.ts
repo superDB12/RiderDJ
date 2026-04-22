@@ -30,6 +30,12 @@ export async function addSong(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(400).send({ error: "trackId is required" });
     }
 
+    // Deduplication: reject if song is already in this ride's queue
+    const existing = await prisma.song.findFirst({ where: { rideId, trackId } });
+    if (existing) {
+      return reply.status(409).send({ error: "Song already in queue" });
+    }
+
     // 🔥 NEW: fetch metadata from Spotify
     const metadata = await getTrackMetadata(rideId, trackId);
 
