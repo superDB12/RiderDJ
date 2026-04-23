@@ -53,8 +53,8 @@ export function getRideWebPage(rideId: string): string {
 
     /* ── Section labels ── */
     .label {
-      font-size: 10px; letter-spacing: 3px; color: var(--text-muted);
-      font-weight: 600; margin-bottom: 10px; text-transform: uppercase;
+      font-size: 16px; letter-spacing: 1px; color: var(--text);
+      font-weight: 700; margin-bottom: 10px;
     }
 
     section { margin-bottom: 28px; }
@@ -109,7 +109,9 @@ export function getRideWebPage(rideId: string): string {
       padding: 10px 12px; border-radius: 10px;
       background: var(--surface); border: 1px solid var(--border);
       gap: 12px; margin-bottom: 6px;
+      cursor: pointer;
     }
+    .track:active { opacity: 0.75; }
     .track-info { flex: 1; min-width: 0; }
     .track-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .track-artist { font-size: 12px; color: var(--text-sec); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -121,8 +123,7 @@ export function getRideWebPage(rideId: string): string {
       box-shadow: 0 0 10px rgba(124,58,237,0.6);
       line-height: 1;
     }
-    .add-btn.added { background: var(--surface2); color: var(--cyan); font-size: 14px; box-shadow: none; cursor: default; }
-    .add-btn:active { opacity: 0.8; }
+    .add-btn.added { background: var(--surface2); color: var(--cyan); font-size: 14px; box-shadow: none; }
 
     /* ── Toast ── */
     .toast {
@@ -264,12 +265,12 @@ export function getRideWebPage(rideId: string): string {
       el.innerHTML =
         \`<button class="clear-btn" onclick="clearResults()">✕  Clear results</button>\` +
         tracks.map(t => \`
-          <div class="track">
+          <div class="track" id="card-\${esc(t.id)}" onclick="addSong('\${esc(t.id)}')">
             <div class="track-info">
               <div class="track-title">\${esc(t.title)}</div>
               <div class="track-artist">\${esc(t.artist)}</div>
             </div>
-            <button class="add-btn" id="add-\${esc(t.id)}" onclick="addSong('\${esc(t.id)}', this)">+</button>
+            <div class="add-btn" id="add-\${esc(t.id)}">+</div>
           </div>
         \`).join("");
     }
@@ -280,9 +281,16 @@ export function getRideWebPage(rideId: string): string {
     }
 
     // ── Add song ──────────────────────────────────────────────
-    async function addSong(trackId, btn) {
-      btn.disabled = true;
-      btn.textContent = "...";
+    const addingIds = new Set();
+
+    async function addSong(trackId) {
+      if (addingIds.has(trackId)) return;
+      addingIds.add(trackId);
+
+      const card = document.getElementById("card-" + trackId);
+      const indicator = document.getElementById("add-" + trackId);
+      if (card) card.style.pointerEvents = "none";
+      if (indicator) indicator.textContent = "...";
 
       try {
         const res = await fetch(BASE + "/rides/" + RIDE_ID + "/songs", {
@@ -294,24 +302,25 @@ export function getRideWebPage(rideId: string): string {
         if (!res.ok) {
           let msg = "Failed to add song";
           try { const j = await res.json(); if (j.error) msg = j.error; } catch {}
-          btn.disabled = false;
-          btn.textContent = "+";
           showToast(msg);
+          if (indicator) indicator.textContent = msg === "Song already in queue" ? "!" : "+";
+          if (card) card.style.pointerEvents = "";
+          addingIds.delete(trackId);
           return;
         }
-        btn.textContent = "✓";
-        btn.className = "add-btn added";
+
+        if (indicator) { indicator.textContent = "✓"; indicator.className = "add-btn added"; }
         showToast("Song added!");
 
-        // Reset after 2s so user can add again
         setTimeout(() => {
-          btn.textContent = "+";
-          btn.className = "add-btn";
-          btn.disabled = false;
+          if (indicator) { indicator.textContent = "+"; indicator.className = "add-btn"; }
+          if (card) card.style.pointerEvents = "";
+          addingIds.delete(trackId);
         }, 2000);
       } catch {
-        btn.disabled = false;
-        btn.textContent = "+";
+        if (indicator) indicator.textContent = "+";
+        if (card) card.style.pointerEvents = "";
+        addingIds.delete(trackId);
         showToast("Failed to add song");
       }
     }

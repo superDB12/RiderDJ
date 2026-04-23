@@ -169,17 +169,23 @@ export default function Queue({ route }: any) {
         )}
 
         {results.length > 0 && (
-          <View style={styles.resultsList}>
-            <TouchableOpacity onPress={() => { setResults([]); setQuery(""); }} style={styles.clearButton}>
-              <Text style={styles.clearButtonText}>✕  Clear results</Text>
-            </TouchableOpacity>
-            {results.map((item) => {
+          <FlatList
+            style={styles.resultsList}
+            data={results}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ gap: 6, paddingBottom: 16 }}
+            keyboardShouldPersistTaps="handled"
+            ListHeaderComponent={
+              <TouchableOpacity onPress={() => { setResults([]); setQuery(""); }} style={styles.clearButton}>
+                <Text style={styles.clearButtonText}>✕  Clear results</Text>
+              </TouchableOpacity>
+            }
+            renderItem={({ item }) => {
               const added = addedIds.has(item.id);
               const already = alreadyIds.has(item.id);
               const busy = added || already;
               return (
                 <TouchableOpacity
-                  key={item.id}
                   style={styles.resultCard}
                   onPress={() => !busy && handleAddSong(item.id)}
                   disabled={busy}
@@ -196,8 +202,8 @@ export default function Queue({ route }: any) {
                   </View>
                 </TouchableOpacity>
               );
-            })}
-          </View>
+            }}
+          />
         )}
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
   },
 
   searchSection: {
-    marginBottom: 28,
+    flex: 1,
   },
 
   searchRow: {
@@ -264,8 +270,8 @@ const styles = StyleSheet.create({
   },
 
   resultsList: {
+    flex: 1,
     marginTop: 10,
-    gap: 6,
   },
 
   clearButton: {

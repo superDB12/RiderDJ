@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { joinRide } from "../api/rides";
 import { colors, glow } from "../theme";
 
@@ -37,44 +37,57 @@ export default function JoinRideScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Join a Ride</Text>
-        <Text style={styles.subtitle}>Enter the code your driver shared with you</Text>
-      </View>
-
-      <TextInput
-        style={styles.input}
-        placeholder="RIDE CODE"
-        placeholderTextColor={colors.textMuted}
-        value={rideCode}
-        onChangeText={setRideCode}
-        autoCapitalize="characters"
-        maxLength={6}
-        onSubmitEditing={handleJoinRide}
-      />
-
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={handleJoinRide}
-        disabled={loading}
-        activeOpacity={0.8}
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.buttonText}>{loading ? "Joining..." : "Join Ride"}</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Join a Ride</Text>
+          <Text style={styles.subtitle}>Enter the code your driver shared with you</Text>
+        </View>
+
+        <TextInput
+          style={styles.input}
+          placeholder="RIDE CODE"
+          placeholderTextColor={colors.textMuted}
+          value={rideCode}
+          onChangeText={setRideCode}
+          autoCapitalize="characters"
+          maxLength={6}
+          onSubmitEditing={handleJoinRide}
+        />
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleJoinRide}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.buttonText}>{loading ? "Joining..." : "Join Ride"}</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+
+  container: {
+    flexGrow: 1,
     paddingHorizontal: 28,
     justifyContent: "center",
     gap: 20,
+    paddingVertical: 40,
   },
 
   header: {
