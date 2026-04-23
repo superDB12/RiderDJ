@@ -215,10 +215,10 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    fontSize: 11,
-    letterSpacing: 3,
-    color: colors.textMuted,
-    fontWeight: "600",
+    fontSize: 16,
+    letterSpacing: 1,
+    color: colors.textPrimary,
+    fontWeight: "700",
     marginBottom: 10,
   },
 

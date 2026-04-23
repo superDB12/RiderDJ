@@ -86,12 +86,14 @@ export async function syncQueueWithSpotify(rideId: string) {
   const next = queue[0];
   if (next && !next.queuedInSpotify) {
     try {
-      const cleanTrackId = next.trackId.replace("spotify:track:", "");
-      await addToSpotifyQueue(rideId, cleanTrackId);
+      // Mark as queued BEFORE calling Spotify so a concurrent cycle can't
+      // double-queue if this call takes longer than the 5s interval.
       await prisma.song.update({
         where: { id: next.id },
         data: { queuedInSpotify: true },
       });
+      const cleanTrackId = next.trackId.replace("spotify:track:", "");
+      await addToSpotifyQueue(rideId, cleanTrackId);
       console.log("🎵 Queued in Spotify:", next.title);
     } catch (err) {
       console.error("Failed to queue in Spotify:", err);
@@ -118,15 +120,24 @@ async function expireOldRides() {
   }
 }
 
+let syncRunning = false;
+
 export function startQueueSync() {
   setInterval(async () => {
-    console.log("⏱ Running queue sync...");
-
-    await expireOldRides();
-
-    for (const rideId of rideSockets.keys()) {
-      console.log("🔁 Syncing ride:", rideId);
-      await syncQueueWithSpotify(rideId);
+    if (syncRunning) {
+      console.log("⏱ Sync already running, skipping cycle");
+      return;
+    }
+    syncRunning = true;
+    try {
+      console.log("⏱ Running queue sync...");
+      await expireOldRides();
+      for (const rideId of rideSockets.keys()) {
+        console.log("🔁 Syncing ride:", rideId);
+        await syncQueueWithSpotify(rideId);
+      }
+    } finally {
+      syncRunning = false;
     }
   }, 5000);
 }
