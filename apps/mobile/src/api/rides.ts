@@ -61,6 +61,16 @@ export async function removeSong(songId: string) {
   return res.json();
 }
 
+export async function getNowPlaying(rideId: string): Promise<{
+  trackId: string; title: string; artist: string;
+  albumArt: string | null; isPlaying: boolean;
+} | null> {
+  const res = await fetch(`${BASE_URL}/rides/${rideId}/now-playing`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data;
+}
+
 export async function endRide(rideId: string) {
   const res = await fetch(`${BASE_URL}/rides/${rideId}/end`, {
     method: "POST",

@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { createRide, joinRide, endRide, getActiveRides } from "./ride.controller";
 import { rideSockets } from "./ride.store";
 import { getRideWebPage } from "./ride.web";
+import { getCurrentlyPlayingFull } from "../spotify/spotify.service";
 
 export async function rideRoutes(app: FastifyInstance) {
 
@@ -50,6 +51,16 @@ export async function rideRoutes(app: FastifyInstance) {
   });
 
   app.post("/rides/:rideId/end", endRide);
+
+  app.get("/rides/:rideId/now-playing", async (req, reply) => {
+    const { rideId } = req.params as { rideId: string };
+    try {
+      const track = await getCurrentlyPlayingFull(rideId);
+      return reply.send(track ?? null);
+    } catch {
+      return reply.send(null);
+    }
+  });
 
   app.get("/ride/:rideId", (req, reply) => {
     const { rideId } = req.params as { rideId: string };

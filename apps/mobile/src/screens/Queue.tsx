@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   FlatList, ActivityIndicator, Keyboard, Image,
 } from "react-native";
-import { getQueue } from "../api/rides";
+import { getQueue, getNowPlaying } from "../api/rides";
 import { addSong } from "../api/songs";
 import { searchSpotify } from "../api/spotify";
 import { Song } from "@riderdj/types";
@@ -16,6 +16,7 @@ export default function Queue({ route }: any) {
   useKeepAwake();
 
   const [songs, setSongs] = useState<Song[]>([]);
+  const [nowPlaying, setNowPlaying] = useState<{ title: string; artist: string; albumArt: string | null; isPlaying: boolean } | null>(null);
   const [error, setError] = useState("");
   const [queueLoading, setQueueLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -27,6 +28,7 @@ export default function Queue({ route }: any) {
 
   useEffect(() => {
     loadQueue();
+    loadNowPlaying();
     connectSocket(rideId);
 
     const unsubscribe = subscribe((data) => {
@@ -37,11 +39,23 @@ export default function Queue({ route }: any) {
       loadQueue();
     });
 
+    const nowPlayingInterval = setInterval(loadNowPlaying, 10000);
+
     return () => {
       unsubscribe();
       unsubscribeReconnect();
+      clearInterval(nowPlayingInterval);
     };
   }, [rideId]);
+
+  const loadNowPlaying = async () => {
+    try {
+      const data = await getNowPlaying(rideId);
+      setNowPlaying(data);
+    } catch {
+      // silently fail — not critical
+    }
+  };
 
   const loadQueue = async () => {
     try {
@@ -103,6 +117,20 @@ export default function Queue({ route }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Now Playing */}
+      {nowPlaying && (
+        <View style={styles.nowPlayingCard}>
+          {nowPlaying.albumArt && (
+            <Image source={{ uri: nowPlaying.albumArt }} style={styles.albumArt} />
+          )}
+          <View style={styles.nowPlayingInfo}>
+            <Text style={styles.nowPlayingLabel}>{nowPlaying.isPlaying ? "▶  NOW PLAYING" : "⏸  PAUSED"}</Text>
+            <Text style={styles.nowPlayingTitle} numberOfLines={1}>{nowPlaying.title}</Text>
+            <Text style={styles.nowPlayingArtist} numberOfLines={1}>{nowPlaying.artist}</Text>
+          </View>
+        </View>
+      )}
+
       {/* Queue */}
       <View style={styles.queueSection}>
         <Text style={styles.sectionLabel}>Queue</Text>
@@ -441,6 +469,49 @@ const styles = StyleSheet.create({
   songArtist: {
     color: colors.textSecondary,
     fontSize: 12,
+    marginTop: 2,
+  },
+
+  nowPlayingCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.pink,
+    padding: 12,
+    gap: 12,
+    marginBottom: 16,
+    ...glow.pink,
+  },
+
+  albumArt: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
+  },
+
+  nowPlayingInfo: {
+    flex: 1,
+  },
+
+  nowPlayingLabel: {
+    fontSize: 10,
+    letterSpacing: 2,
+    color: colors.pink,
+    fontWeight: "700",
+    marginBottom: 3,
+  },
+
+  nowPlayingTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.textPrimary,
+  },
+
+  nowPlayingArtist: {
+    fontSize: 12,
+    color: colors.textSecondary,
     marginTop: 2,
   },
 });

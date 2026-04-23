@@ -59,6 +59,28 @@ export function getRideWebPage(rideId: string): string {
 
     section { margin-bottom: 28px; }
 
+    /* ── Now Playing ── */
+    .now-playing {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; border-radius: 14px;
+      background: var(--surface); border: 1px solid var(--pink);
+      box-shadow: 0 0 12px rgba(236,72,153,0.35);
+      margin-bottom: 20px;
+    }
+    .now-playing.hidden { display: none; }
+    .np-art {
+      width: 52px; height: 52px; border-radius: 8px;
+      object-fit: cover; flex-shrink: 0;
+      background: var(--surface2);
+    }
+    .np-info { flex: 1; min-width: 0; }
+    .np-label {
+      font-size: 10px; letter-spacing: 2px; color: var(--pink);
+      font-weight: 700; margin-bottom: 3px;
+    }
+    .np-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .np-artist { font-size: 12px; color: var(--text-sec); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
     /* ── Queue ── */
     .queue-item {
       display: flex; align-items: center; gap: 10px;
@@ -147,6 +169,16 @@ export function getRideWebPage(rideId: string): string {
   <div class="status-bar">
     <span class="status-dot" id="dot"></span>
     <span id="status-text">Connecting...</span>
+  </div>
+
+  <!-- Now Playing -->
+  <div class="now-playing hidden" id="now-playing">
+    <img class="np-art" id="np-art" src="" alt="" />
+    <div class="np-info">
+      <div class="np-label" id="np-label">▶  NOW PLAYING</div>
+      <div class="np-title" id="np-title"></div>
+      <div class="np-artist" id="np-artist"></div>
+    </div>
   </div>
 
   <!-- Queue -->
@@ -342,6 +374,26 @@ export function getRideWebPage(rideId: string): string {
     document.getElementById("search-input").addEventListener("keydown", e => {
       if (e.key === "Enter") handleSearch();
     });
+
+    // ── Now Playing ──────────────────────────────────────────
+    async function loadNowPlaying() {
+      try {
+        const res = await fetch(BASE + "/rides/" + RIDE_ID + "/now-playing");
+        const data = await res.json();
+        const el = document.getElementById("now-playing");
+        if (!data || !data.title) { el.classList.add("hidden"); return; }
+        document.getElementById("np-title").textContent = data.title;
+        document.getElementById("np-artist").textContent = data.artist;
+        document.getElementById("np-label").textContent = data.isPlaying ? "▶  NOW PLAYING" : "⏸  PAUSED";
+        const art = document.getElementById("np-art");
+        if (data.albumArt) { art.src = data.albumArt; art.style.display = ""; }
+        else { art.style.display = "none"; }
+        el.classList.remove("hidden");
+      } catch {}
+    }
+
+    loadNowPlaying();
+    setInterval(loadNowPlaying, 10000);
 
     loadQueue();
     connect();

@@ -140,5 +140,33 @@ export async function getCurrentlyPlaying(rideId: string) {
   return data?.item?.id || null;
 }
 
+export async function getCurrentlyPlayingFull(rideId: string) {
+  const accessToken = await getValidAccessToken(rideId);
+
+  const res = await fetch(
+    "https://api.spotify.com/v1/me/player/currently-playing",
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (res.status === 204) return null;
+
+  if (!res.ok) return null;
+
+  const data = await res.json() as any;
+  if (!data?.item) return null;
+
+  return {
+    trackId:  data.item.id,
+    title:    data.item.name,
+    artist:   data.item.artists.map((a: any) => a.name).join(", "),
+    albumArt: data.item.album?.images?.[0]?.url ?? null,
+    isPlaying: data.is_playing ?? true,
+  };
+}
+
 
 
