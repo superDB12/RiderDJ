@@ -17,9 +17,9 @@ export async function createRide(request: FastifyRequest, reply: FastifyReply) {
   });
 
   for (const existing of existingRides) {
-    await prisma.ride.update({ where: { id: existing.id }, data: { isActive: false } });
-    await prisma.song.deleteMany({ where: { rideId: existing.id } });
     closeRideSockets(existing.id);
+    await prisma.song.deleteMany({ where: { rideId: existing.id } });
+    await prisma.ride.delete({ where: { id: existing.id } });
   }
 
   const ride = await prisma.ride.create({
@@ -79,10 +79,10 @@ export async function endRide(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(403).send({ error: "Forbidden" });
     }
 
-    await prisma.ride.update({ where: { id: rideId }, data: { isActive: false } });
-    await prisma.song.deleteMany({ where: { rideId } });
-
     closeRideSockets(rideId);
+
+    await prisma.song.deleteMany({ where: { rideId } });
+    await prisma.ride.delete({ where: { id: rideId } });
 
     return reply.send({ success: true });
   } catch (err) {

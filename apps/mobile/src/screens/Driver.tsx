@@ -77,9 +77,14 @@ export default function Driver() {
   };
 
   const doEndRide = async () => {
-    await endRide(rideId);
-    disconnectSocket();
-    navigation.reset({ index: 0, routes: [{ name: "Home" }] });
+    try {
+      await endRide(rideId);
+      disconnectSocket();
+      navigation.reset({ index: 0, routes: [{ name: "Home" }] });
+    } catch (err) {
+      console.error("endRide failed:", err);
+      Alert.alert("Error", "Failed to end ride. Please try again.");
+    }
   };
 
   const handleEndRide = () => {
