@@ -6,14 +6,12 @@ import {
 import * as Linking from "expo-linking";
 import { useFocusEffect } from "@react-navigation/native";
 import { createRide, getActiveRides, endRide } from "../api/rides";
+import { getDriverId, clearAuth } from "../lib/auth";
 import { colors, glow } from "../theme";
 
 const BASE_URL = "https://riderdj-production.up.railway.app";
 
 export default function Home({ navigation }: any) {
-  const [rideId] = useState(() =>
-    Math.random().toString(36).substring(2, 6).toUpperCase()
-  );
   const [loading, setLoading] = useState(false);
   const [activeRides, setActiveRides] = useState<{ id: string; createdAt: string }[]>([]);
   const [ridesLoading, setRidesLoading] = useState(false);
@@ -39,21 +37,23 @@ export default function Home({ navigation }: any) {
   const handleConnectSpotify = async () => {
     setLoading(true);
     try {
+      const driverId = await getDriverId();
+      // Generate a ride hint ID for the Spotify OAuth redirect continuity
+      const rideId = Math.random().toString(36).substring(2, 6).toUpperCase();
       await createRide(rideId);
+
+      const redirectTo = Linking.createURL(`driver/${rideId}`);
+      const url =
+        `${BASE_URL}/spotify/login` +
+        `?rideId=${encodeURIComponent(rideId)}` +
+        `&redirectTo=${encodeURIComponent(redirectTo)}`;
+
+      Linking.openURL(url);
     } catch {
       Alert.alert("Error", "Could not create ride. Is the backend running?");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const redirectTo = Linking.createURL(`driver/${rideId}`);
-    const url =
-      `${BASE_URL}/spotify/login` +
-      `?rideId=${encodeURIComponent(rideId)}` +
-      `&redirectTo=${encodeURIComponent(redirectTo)}`;
-
-    Linking.openURL(url);
-    setLoading(false);
   };
 
   const doEndRide = async (existingRideId: string) => {
@@ -76,6 +76,11 @@ export default function Home({ navigation }: any) {
     }
   };
 
+  const handleSignOut = async () => {
+    await clearAuth();
+    navigation.replace("RoleSelect");
+  };
+
   const formatDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
@@ -84,6 +89,16 @@ export default function Home({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.topRow}>
+        <View style={styles.brand}>
+          <Text style={styles.brandLogo}>RiderDJ</Text>
+          <Text style={styles.brandTagline}>YOUR RIDE. YOUR MUSIC.</Text>
+        </View>
+        <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
+          <Text style={styles.signOutText}>Sign Out</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.title}>Start a Ride</Text>
         <Text style={styles.subtitle}>Connect Spotify to get the music going</Text>
@@ -152,6 +167,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingTop: 20,
     gap: 24,
+  },
+
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+
+  brand: {},
+
+  brandLogo: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+  },
+
+  brandTagline: {
+    fontSize: 10,
+    letterSpacing: 4,
+    color: colors.cyan,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+
+  signOutButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+  },
+
+  signOutText: {
+    color: colors.textMuted,
+    fontSize: 13,
   },
 
   header: {
@@ -229,6 +277,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
+    marginBottom: 8,
   },
 
   rideCardMain: {

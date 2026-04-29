@@ -120,6 +120,19 @@ async function expireOldRides() {
   }
 }
 
+export function closeRideSockets(rideId: string) {
+  const sockets = rideSockets.get(rideId);
+  if (!sockets) return;
+  for (const ws of sockets) {
+    try {
+      ws.send(JSON.stringify({ type: "ride_ended" }));
+      ws.close();
+    } catch {}
+  }
+  rideSockets.delete(rideId);
+  console.log(`🔌 Closed all sockets for ride ${rideId}`);
+}
+
 let syncRunning = false;
 
 export function startQueueSync() {

@@ -8,9 +8,11 @@ import JoinRideScreen from "./src/screens/JoinRide"
 import Driver from "./src/screens/Driver"
 import Home from "./src/screens/Home"
 import RoleSelect from "./src/screens/RoleSelect"
+import DriverAuth from "./src/screens/DriverAuth"
 
 export type RootStackParamList = {
   RoleSelect: undefined
+  DriverAuth: undefined
   Home: undefined
   JoinRide: { rideId: string }
   Queue: { rideId: string }
@@ -43,19 +45,16 @@ export default function App() {
           contentStyle: { backgroundColor: "#07060f" },
         }}
       >
-        <Stack.Screen
-          name="RoleSelect"
-          component={RoleSelect}
-          options={{ headerShown: false }}
-        />
+        <Stack.Screen name="RoleSelect" component={RoleSelect} options={{ headerShown: false }} />
+        <Stack.Screen name="DriverAuth" component={DriverAuth} options={{ headerShown: false }} />
 
         {/* DRIVER FLOW */}
-        <Stack.Screen name="Home" component={Home} options={{ title: "RiderDJ" }} />
-        <Stack.Screen name="Driver" component={Driver} options={{ title: "RiderDJ", headerBackVisible: false }} />
+        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+        <Stack.Screen name="Driver" component={Driver} options={{ headerShown: false }} />
 
         {/* PASSENGER FLOW */}
-        <Stack.Screen name="JoinRide" component={JoinRideScreen} options={{ title: "RiderDJ" }} />
-        <Stack.Screen name="Queue" component={Queue} options={{ title: "RiderDJ" }} />
+        <Stack.Screen name="JoinRide" component={JoinRideScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Queue" component={Queue} options={{ headerShown: false }} />
 
       </Stack.Navigator>
     </NavigationContainer>

@@ -7,9 +7,33 @@ datasource db {
   provider = "postgresql"
 }
 
+model Driver {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+  rides        Ride[]
+}
+
+model Ride {
+  id            String    @id @default(cuid())
+  driverId      String
+  driver        Driver    @relation(fields: [driverId], references: [id])
+  createdAt     DateTime  @default(now())
+  isActive      Boolean   @default(true)
+  rideExpiresAt DateTime?
+
+  // Spotify tokens
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+
+  songs        Song[]
+}
+
 model Song {
   id               String   @id @default(uuid())
   rideId           String
+  ride             Ride     @relation(fields: [rideId], references: [id])
   trackId          String
   title            String
   artist           String
@@ -17,16 +41,4 @@ model Song {
   votes            Int      @default(1)
   addedAt          DateTime @default(now())
   queuedInSpotify  Boolean  @default(false)
-}
-
-model Ride {
-  id           String    @id @default(cuid())
-  createdAt    DateTime  @default(now())
-  isActive     Boolean   @default(true)
-  rideExpiresAt DateTime?
-
-  // Spotify tokens
-  accessToken  String?
-  refreshToken String?
-  expiresAt    DateTime?
 }

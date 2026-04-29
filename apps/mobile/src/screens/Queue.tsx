@@ -16,6 +16,7 @@ export default function Queue({ route }: any) {
   useKeepAwake();
 
   const [songs, setSongs] = useState<Song[]>([]);
+  const [rideEnded, setRideEnded] = useState(false);
   const [nowPlaying, setNowPlaying] = useState<{ title: string; artist: string; albumArt: string | null; isPlaying: boolean } | null>(null);
   const [error, setError] = useState("");
   const [queueLoading, setQueueLoading] = useState(false);
@@ -32,6 +33,10 @@ export default function Queue({ route }: any) {
     connectSocket(rideId);
 
     const unsubscribe = subscribe((data) => {
+      if (data.type === "ride_ended") {
+        setRideEnded(true);
+        return;
+      }
       if (data.songs) setSongs(data.songs);
     });
 
@@ -117,6 +122,20 @@ export default function Queue({ route }: any) {
 
   return (
     <View style={styles.container}>
+      {rideEnded && (
+        <View style={styles.rideEndedOverlay}>
+          <Text style={styles.rideEndedEmoji}>🎵</Text>
+          <Text style={styles.rideEndedTitle}>Ride Ended</Text>
+          <Text style={styles.rideEndedSub}>Thanks for riding! The driver has ended this session.</Text>
+        </View>
+      )}
+
+      {/* Brand */}
+      <View style={styles.brand}>
+        <Text style={styles.brandLogo}>RiderDJ</Text>
+        <Text style={styles.brandTagline}>YOUR RIDE. YOUR MUSIC.</Text>
+      </View>
+
       {/* Now Playing */}
       {nowPlaying && (
         <View style={styles.nowPlayingCard}>
@@ -469,6 +488,53 @@ const styles = StyleSheet.create({
   songArtist: {
     color: colors.textSecondary,
     fontSize: 12,
+    marginTop: 2,
+  },
+
+  rideEndedOverlay: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: colors.bg,
+    zIndex: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingHorizontal: 40,
+  },
+
+  rideEndedEmoji: {
+    fontSize: 48,
+  },
+
+  rideEndedTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: colors.textPrimary,
+  },
+
+  rideEndedSub: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+
+  brand: {
+    marginBottom: 8,
+  },
+
+  brandLogo: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+  },
+
+  brandTagline: {
+    fontSize: 10,
+    letterSpacing: 4,
+    color: colors.cyan,
+    fontWeight: "600",
     marginTop: 2,
   },
 

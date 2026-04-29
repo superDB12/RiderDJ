@@ -45,6 +45,11 @@ export default function JoinRideScreen({ route, navigation }: any) {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={styles.brand}>
+          <Text style={styles.brandLogo}>RiderDJ</Text>
+          <Text style={styles.brandTagline}>YOUR RIDE. YOUR MUSIC.</Text>
+        </View>
+
         <View style={styles.header}>
           <Text style={styles.title}>Join a Ride</Text>
           <Text style={styles.subtitle}>Enter the code your driver shared with you</Text>
@@ -88,6 +93,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 20,
     paddingVertical: 40,
+  },
+
+  brand: {
+    marginBottom: 4,
+  },
+
+  brandLogo: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+  },
+
+  brandTagline: {
+    fontSize: 10,
+    letterSpacing: 4,
+    color: colors.cyan,
+    fontWeight: "600",
+    marginTop: 2,
   },
 
   header: {

@@ -30,6 +30,13 @@ export async function addSong(request: FastifyRequest, reply: FastifyReply) {
       return reply.status(400).send({ error: "trackId is required" });
     }
 
+    // Reject adds to inactive or expired rides
+    const ride = await prisma.ride.findUnique({ where: { id: rideId } });
+    const expired = ride?.rideExpiresAt && ride.rideExpiresAt < new Date();
+    if (!ride || !ride.isActive || expired) {
+      return reply.status(404).send({ error: "Ride not found" });
+    }
+
     // Deduplication: reject if song is already in this ride's queue
     const existing = await prisma.song.findFirst({ where: { rideId, trackId } });
     if (existing) {

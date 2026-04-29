@@ -1,8 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { colors, glow } from "../theme";
+import { getToken } from "../lib/auth";
 
 export default function RoleSelect({ navigation }: any) {
+  const handleDriverPress = async () => {
+    const token = await getToken();
+    navigation.navigate(token ? "Home" : "DriverAuth");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
@@ -13,7 +19,7 @@ export default function RoleSelect({ navigation }: any) {
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.button, styles.buttonPurple]}
-          onPress={() => navigation.navigate("Home")}
+          onPress={handleDriverPress}
           activeOpacity={0.8}
         >
           <Text style={styles.buttonIcon}>🚗</Text>

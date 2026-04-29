@@ -1,26 +1,14 @@
-// apps/mobile/src/api/api.ts
-const BASE_URL = "http://192.68.86.130:3000"
+import { API_BASE_URL } from "./config";
+import { getToken } from "../lib/auth";
 
-export async function createRide() {
-  const res = await fetch(`${BASE_URL}/rides`, { method: "POST" })
-  return res.json()
-}
-
-export async function joinRide(joinCode: string) {
-  const res = await fetch(`${BASE_URL}/rides/${joinCode}`)
-  return res.json()
-}
-
-export async function getQueue(rideId: string) {
-  const res = await fetch(`${BASE_URL}/rides/${rideId}/queue`)
-  return res.json()
-}
-
-export async function addSong(rideId: string, trackId: string) {
-  const res = await fetch(`${BASE_URL}/rides/${rideId}/songs`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ trackId }),
-  })
-  return res.json()
+export async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const token = await getToken();
+  return fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 }

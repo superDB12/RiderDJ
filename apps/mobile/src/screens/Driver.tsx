@@ -14,6 +14,7 @@ import {
 import { useRoute, useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
 import { getQueue, removeSong, endRide } from "../api/rides";
+import { getDriverId } from "../lib/auth";
 import { connectSocket, subscribe, onReconnect, disconnectSocket } from "../lib/socket";
 import { colors, glow } from "../theme";
 
@@ -26,8 +27,10 @@ export default function Driver() {
 
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [driverId, setDriverId] = useState<string | null>(null);
 
   useEffect(() => {
+    getDriverId().then(setDriverId);
     loadQueue();
     connectSocket(rideId);
 
@@ -91,6 +94,12 @@ export default function Driver() {
 
   return (
     <View style={styles.container}>
+      {/* Brand */}
+      <View style={styles.brand}>
+        <Text style={styles.brandLogo}>RiderDJ</Text>
+        <Text style={styles.brandTagline}>YOUR RIDE. YOUR MUSIC.</Text>
+      </View>
+
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -107,7 +116,7 @@ export default function Driver() {
         <Text style={styles.qrLabel}>SCAN TO JOIN</Text>
         <Image
           style={styles.qrImage}
-          source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://riderdj-production.up.railway.app/ride/${rideId}`)}&color=a855f7&bgcolor=110d24&margin=2` }}
+          source={{ uri: driverId ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://riderdj-production.up.railway.app/join/driver/${driverId}`)}&color=a855f7&bgcolor=110d24&margin=2` : undefined }}
         />
       </View>
 
@@ -163,6 +172,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
     paddingHorizontal: 20,
     paddingTop: 20,
+  },
+
+  brand: {
+    marginBottom: 4,
+  },
+
+  brandLogo: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+  },
+
+  brandTagline: {
+    fontSize: 10,
+    letterSpacing: 4,
+    color: colors.cyan,
+    fontWeight: "600",
+    marginTop: 2,
   },
 
   header: {
