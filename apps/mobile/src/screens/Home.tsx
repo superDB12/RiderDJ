@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet,
   Alert, ScrollView, ActivityIndicator, Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import { useFocusEffect } from "@react-navigation/native";
 import { createRide, getActiveRides, endRide } from "../api/rides";
@@ -88,7 +89,7 @@ export default function Home({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.topRow}>
         <View style={styles.brand}>
           <Text style={styles.brandLogo}>RiderDJ</Text>
@@ -156,7 +157,7 @@ export default function Home({ navigation }: any) {
           </ScrollView>
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

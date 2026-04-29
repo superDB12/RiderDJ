@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { login, register } from "../api/auth";
 import { saveAuth } from "../lib/auth";
 import { colors, glow } from "../theme";
@@ -35,6 +36,7 @@ export default function DriverAuth({ navigation }: any) {
   };
 
   return (
+    <SafeAreaView style={styles.flex}>
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.brand}>
@@ -96,6 +98,7 @@ export default function DriverAuth({ navigation }: any) {
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

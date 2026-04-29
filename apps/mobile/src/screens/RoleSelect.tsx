@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, glow } from "../theme";
 import { getToken } from "../lib/auth";
 
@@ -10,7 +11,7 @@ export default function RoleSelect({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.hero}>
         <Text style={styles.logo}>RiderDJ</Text>
         <Text style={styles.tagline}>YOUR RIDE. YOUR MUSIC.</Text>
@@ -41,7 +42,7 @@ export default function RoleSelect({ navigation }: any) {
           </View>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,6 +1,7 @@
 import React from "react"
 import { NavigationContainer, LinkingOptions } from "@react-navigation/native"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
+import { SafeAreaProvider } from "react-native-safe-area-context"
 import * as Linking from "expo-linking"
 
 import Queue from "./src/screens/Queue"
@@ -34,29 +35,31 @@ const linking: LinkingOptions<RootStackParamList> = {
 
 export default function App() {
   return (
-    <NavigationContainer linking={linking}>
-      <Stack.Navigator
-        id="root"
-        initialRouteName="RoleSelect"
-        screenOptions={{
-          headerStyle: { backgroundColor: "#07060f" },
-          headerTintColor: "#f0eaff",
-          headerTitleStyle: { fontWeight: "700" },
-          contentStyle: { backgroundColor: "#07060f" },
-        }}
-      >
-        <Stack.Screen name="RoleSelect" component={RoleSelect} options={{ headerShown: false }} />
-        <Stack.Screen name="DriverAuth" component={DriverAuth} options={{ headerShown: false }} />
+    <SafeAreaProvider>
+      <NavigationContainer linking={linking}>
+        <Stack.Navigator
+          id="root"
+          initialRouteName="RoleSelect"
+          screenOptions={{
+            headerStyle: { backgroundColor: "#07060f" },
+            headerTintColor: "#f0eaff",
+            headerTitleStyle: { fontWeight: "700" },
+            contentStyle: { backgroundColor: "#07060f" },
+          }}
+        >
+          <Stack.Screen name="RoleSelect" component={RoleSelect} options={{ headerShown: false }} />
+          <Stack.Screen name="DriverAuth" component={DriverAuth} options={{ headerShown: false }} />
 
-        {/* DRIVER FLOW */}
-        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-        <Stack.Screen name="Driver" component={Driver} options={{ headerShown: false }} />
+          {/* DRIVER FLOW */}
+          <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+          <Stack.Screen name="Driver" component={Driver} options={{ headerShown: false }} />
 
-        {/* PASSENGER FLOW */}
-        <Stack.Screen name="JoinRide" component={JoinRideScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Queue" component={Queue} options={{ headerShown: false }} />
+          {/* PASSENGER FLOW */}
+          <Stack.Screen name="JoinRide" component={JoinRideScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Queue" component={Queue} options={{ headerShown: false }} />
 
-      </Stack.Navigator>
-    </NavigationContainer>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   )
 }

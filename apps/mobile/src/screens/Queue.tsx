@@ -4,6 +4,7 @@ import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
   FlatList, ActivityIndicator, Keyboard, Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { getQueue, getNowPlaying } from "../api/rides";
 import { addSong } from "../api/songs";
 import { searchSpotify } from "../api/spotify";
@@ -121,7 +122,7 @@ export default function Queue({ route }: any) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {rideEnded && (
         <View style={styles.rideEndedOverlay}>
           <Text style={styles.rideEndedEmoji}>🎵</Text>
@@ -255,7 +256,7 @@ export default function Queue({ route }: any) {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -11,6 +11,7 @@ import {
   Platform,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import * as Clipboard from "expo-clipboard";
 import { getQueue, removeSong, endRide } from "../api/rides";
@@ -93,7 +94,7 @@ export default function Driver() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* Brand */}
       <View style={styles.brand}>
         <Text style={styles.brandLogo}>RiderDJ</Text>
@@ -162,7 +163,7 @@ export default function Driver() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
