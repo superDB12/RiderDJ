@@ -6,9 +6,9 @@ import { prisma } from "../../infrastructure/database/prisma";
 
 const RIDE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-export async function createRide(request: FastifyRequest<{ Body: { id?: string } }>, reply: FastifyReply) {
+export async function createRide(request: FastifyRequest, reply: FastifyReply) {
   const { driverId } = request.user as { driverId: string };
-  const { id } = request.body ?? {};
+  const { id } = (request.body as { id?: string }) ?? {};
 
   // Auto-close any existing active ride for this driver
   const existingRides = await prisma.ride.findMany({

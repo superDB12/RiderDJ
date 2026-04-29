@@ -60,16 +60,9 @@ export async function spotifyRoutes(app: FastifyInstance) {
 
     const expiresAt = new Date(Date.now() + data.expires_in * 1000);
 
-    const ride = await prisma.ride.upsert({
+    const ride = await prisma.ride.update({
       where: { id: rideId ?? "" },
-      update: {
-        isActive: true,
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token,
-        expiresAt,
-      },
-      create: {
-        ...(rideId ? { id: rideId } : {}),
+      data: {
         isActive: true,
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
@@ -77,7 +70,7 @@ export async function spotifyRoutes(app: FastifyInstance) {
       },
     });
 
-    console.log("RIDE UPSERTED WITH TOKENS:", ride.id);
+    console.log("RIDE UPDATED WITH TOKENS:", ride.id);
 
     return reply.redirect(redirectTo ?? `riderdj://driver/${ride.id}`);
   });
